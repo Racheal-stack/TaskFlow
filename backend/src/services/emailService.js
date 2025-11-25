@@ -236,7 +236,6 @@ class EmailService {
       html
     });
   }
-}
 
   // Email provider configurations
   getProviderConfig(provider) {

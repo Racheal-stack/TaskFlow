@@ -12,7 +12,7 @@ import PublicRoute from './components/auth/PublicRoute'
 // Pages
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/auth/LoginPage'
-import RegisterPage from './pages/RegisterPage'
+import RegisterPage from './pages/auth/RegisterPage'
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import DashboardPage from './pages/dashboard/DashboardPage'

@@ -108,17 +108,10 @@ export const AuthProvider = ({ children }) => {
       dispatch({ type: 'SET_LOADING', payload: true })
       const response = await authAPI.register(userData)
       
-      // Set token in cookies
-      Cookies.set('token', response.token, { 
-        expires: 30,
-        secure: import.meta.env.PROD,
-        sameSite: 'strict'
-      })
+      // Don't auto-login after registration - user needs to verify email first
+      // Only show success message, verification will be handled by RegisterPage
+      dispatch({ type: 'SET_LOADING', payload: false })
       
-      dispatch({ type: 'SET_USER', payload: response.user })
-      queryClient.invalidateQueries('auth/me')
-      
-      toast.success(`Welcome to TaskFlow, ${response.user.name}!`)
       return response
     } catch (error) {
       dispatch({ type: 'SET_LOADING', payload: false })

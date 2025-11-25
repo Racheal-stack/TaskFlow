@@ -54,9 +54,11 @@ const RegisterPage = () => {
 
     setIsLoading(true)
     try {
-      await authAPI.register(formData)
+      const response = await authAPI.register(formData)
+      
       setUserEmail(formData.email)
       setShowVerification(true)
+      
       toast.success('Registration successful! Please check your email for verification code.')
     } catch (error) {
       toast.error(error.response?.data?.message || 'Registration failed')
