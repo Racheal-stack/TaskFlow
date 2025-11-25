@@ -29,7 +29,6 @@ const workspaceSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  // Subscription details
   subscription: {
     plan: {
       type: String,
@@ -50,7 +49,6 @@ const workspaceSchema = new mongoose.Schema({
       default: false
     }
   },
-  // Plan limits
   limits: {
     maxProjects: {
       type: Number,
@@ -77,7 +75,6 @@ const workspaceSchema = new mongoose.Schema({
       default: false
     }
   },
-  // Usage tracking
   usage: {
     projectCount: {
       type: Number,
@@ -92,7 +89,6 @@ const workspaceSchema = new mongoose.Schema({
       default: 0
     }
   },
-  // Workspace settings
   settings: {
     timezone: {
       type: String,
@@ -126,7 +122,6 @@ const workspaceSchema = new mongoose.Schema({
       default: true
     }
   },
-  // Members (populated from User.workspaces)
   memberCount: {
     type: Number,
     default: 1
@@ -135,7 +130,6 @@ const workspaceSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  // Invitation settings
   inviteToken: {
     type: String,
     unique: true,
@@ -152,12 +146,10 @@ const workspaceSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Indexes (slug index is automatically created by unique: true)
 workspaceSchema.index({ owner: 1 });
 workspaceSchema.index({ 'subscription.stripeCustomerId': 1 });
 workspaceSchema.index({ isActive: 1 });
 
-// Virtual for projects count
 workspaceSchema.virtual('projectCount', {
   ref: 'Project',
   localField: '_id',
@@ -165,14 +157,12 @@ workspaceSchema.virtual('projectCount', {
   count: true
 });
 
-// Virtual for members
 workspaceSchema.virtual('members', {
   ref: 'User',
   localField: '_id',
   foreignField: 'workspaces.workspace'
 });
 
-// Pre-save middleware to generate slug
 workspaceSchema.pre('save', function(next) {
   if (this.isModified('name') && !this.slug) {
     this.slug = this.name
@@ -184,17 +174,14 @@ workspaceSchema.pre('save', function(next) {
   next();
 });
 
-// Method to check if workspace can add more projects
 workspaceSchema.methods.canAddProject = function() {
   return this.usage.projectCount < this.limits.maxProjects;
 };
 
-// Method to check if workspace can add more members
 workspaceSchema.methods.canAddMember = function() {
   return this.usage.memberCount < this.limits.maxMembers;
 };
 
-// Method to check if feature is available
 workspaceSchema.methods.hasFeature = function(feature) {
   if (this.subscription.plan === 'pro') {
     return true;
@@ -204,7 +191,6 @@ workspaceSchema.methods.hasFeature = function(feature) {
   return freeFeatures.includes(feature);
 };
 
-// Method to upgrade limits for pro plan
 workspaceSchema.methods.upgradeToPro = function() {
   this.limits.maxProjects = 999999; // Unlimited
   this.limits.maxMembers = 999999; // Unlimited
@@ -215,7 +201,6 @@ workspaceSchema.methods.upgradeToPro = function() {
   this.subscription.plan = 'pro';
 };
 
-// Static method to find by slug
 workspaceSchema.statics.findBySlug = function(slug) {
   return this.findOne({ slug, isActive: true });
 };

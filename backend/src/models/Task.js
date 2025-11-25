@@ -27,7 +27,6 @@ const taskSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  // Task assignment
   assignees: [{
     user: {
       type: mongoose.Schema.ObjectId,
@@ -42,7 +41,6 @@ const taskSchema = new mongoose.Schema({
       ref: 'User'
     }
   }],
-  // Task status and column
   status: {
     type: String,
     enum: ['todo', 'doing', 'review', 'done', 'blocked', 'cancelled'],
@@ -53,22 +51,18 @@ const taskSchema = new mongoose.Schema({
     required: true,
     default: 'todo'
   },
-  // Task priority
   priority: {
     type: String,
     enum: ['low', 'medium', 'high', 'urgent'],
     default: 'medium'
   },
-  // Task dates
   dueDate: Date,
   startDate: Date,
   completedAt: Date,
-  // Task ordering within column
   order: {
     type: Number,
     default: 0
   },
-  // Task labels/tags
   labels: [{
     name: {
       type: String,
@@ -80,7 +74,6 @@ const taskSchema = new mongoose.Schema({
       default: '#6B7280'
     }
   }],
-  // File attachments (Pro feature)
   attachments: [{
     fileName: String,
     originalName: String,
@@ -96,7 +89,6 @@ const taskSchema = new mongoose.Schema({
     },
     url: String
   }],
-  // Task checklist
   checklist: [{
     id: {
       type: String,
@@ -121,7 +113,6 @@ const taskSchema = new mongoose.Schema({
       default: 0
     }
   }],
-  // Time tracking
   timeTracking: {
     estimated: Number, // in minutes
     logged: Number, // in minutes
@@ -136,7 +127,6 @@ const taskSchema = new mongoose.Schema({
       description: String
     }]
   },
-  // Comments/Activity
   comments: [{
     user: {
       type: mongoose.Schema.ObjectId,
@@ -164,7 +154,6 @@ const taskSchema = new mongoose.Schema({
       default: false
     }
   }],
-  // Task relationships
   dependencies: [{
     task: {
       type: mongoose.Schema.ObjectId,
@@ -176,7 +165,6 @@ const taskSchema = new mongoose.Schema({
       default: 'related'
     }
   }],
-  // Subtasks
   subtasks: [{
     type: mongoose.Schema.ObjectId,
     ref: 'Task'
@@ -185,7 +173,6 @@ const taskSchema = new mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: 'Task'
   },
-  // Task settings
   isArchived: {
     type: Boolean,
     default: false
@@ -194,7 +181,6 @@ const taskSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  // Recurring task settings (Pro feature)
   recurring: {
     isRecurring: {
       type: Boolean,
@@ -214,7 +200,6 @@ const taskSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Indexes
 taskSchema.index({ project: 1, column: 1, order: 1 });
 taskSchema.index({ workspace: 1, status: 1 });
 taskSchema.index({ 'assignees.user': 1 });
@@ -223,12 +208,10 @@ taskSchema.index({ priority: 1, status: 1 });
 taskSchema.index({ createdBy: 1 });
 taskSchema.index({ isArchived: 1 });
 
-// Virtual for overdue status
 taskSchema.virtual('isOverdue').get(function() {
   return this.dueDate && new Date() > this.dueDate && this.status !== 'done';
 });
 
-// Virtual for completion percentage
 taskSchema.virtual('completionPercentage').get(function() {
   if (this.checklist.length === 0) {
     return this.status === 'done' ? 100 : 0;
@@ -238,24 +221,18 @@ taskSchema.virtual('completionPercentage').get(function() {
   return Math.round((completedItems / this.checklist.length) * 100);
 });
 
-// Virtual for total logged time
 taskSchema.virtual('totalLoggedTime').get(function() {
   return this.timeTracking.logged || 0;
 });
 
-// Pre-save middleware
 taskSchema.pre('save', function(next) {
-  // Set completion date when task is marked as done
   if (this.isModified('status') && this.status === 'done' && !this.completedAt) {
     this.completedAt = new Date();
   }
   
-  // Clear completion date when task is moved from done
   if (this.isModified('status') && this.status !== 'done' && this.completedAt) {
     this.completedAt = undefined;
   }
-  
-  // Update column based on status
   if (this.isModified('status') && !this.isModified('column')) {
     const statusColumnMap = {
       'todo': 'todo',
@@ -271,14 +248,12 @@ taskSchema.pre('save', function(next) {
   next();
 });
 
-// Method to check if user is assigned to task
 taskSchema.methods.isAssignedTo = function(userId) {
   return this.assignees.some(assignee => 
     assignee.user.toString() === userId.toString()
   );
 };
 
-// Method to add comment
 taskSchema.methods.addComment = function(userId, text, type = 'comment', metadata = {}) {
   this.comments.push({
     user: userId,
@@ -289,12 +264,10 @@ taskSchema.methods.addComment = function(userId, text, type = 'comment', metadat
   return this.save();
 };
 
-// Method to move to column
 taskSchema.methods.moveToColumn = function(columnId, newOrder) {
   this.column = columnId;
   this.order = newOrder;
   
-  // Update status based on column
   const columnStatusMap = {
     'todo': 'todo',
     'doing': 'doing',
@@ -309,7 +282,6 @@ taskSchema.methods.moveToColumn = function(columnId, newOrder) {
   return this.save();
 };
 
-// Static method to find by project
 taskSchema.statics.findByProject = function(projectId, options = {}) {
   const query = { project: projectId, isArchived: false };
   
@@ -324,7 +296,6 @@ taskSchema.statics.findByProject = function(projectId, options = {}) {
     .sort({ order: 1, createdAt: -1 });
 };
 
-// Static method to get overdue tasks
 taskSchema.statics.getOverdueTasks = function(workspaceId) {
   return this.find({
     workspace: workspaceId,

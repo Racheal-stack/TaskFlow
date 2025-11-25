@@ -70,7 +70,6 @@ const userSchema = new mongoose.Schema({
       default: 'UTC'
     }
   },
-  // Workspaces this user has access to
   workspaces: [{
     workspace: {
       type: mongoose.Schema.ObjectId,
@@ -86,7 +85,6 @@ const userSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
-  // Current active workspace
   currentWorkspace: {
     type: mongoose.Schema.ObjectId,
     ref: 'Workspace'
@@ -97,16 +95,14 @@ const userSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Indexes (email index is automatically created by unique: true)
-userSchema.index({ 'workspaces.workspace': 1 });
-userSchema.index({ currentWorkspace: 1 });
+UserSchema.index({ 'workspaces.workspace': 1 });
+UserSchema.index({ currentWorkspace: 1 });
 
-// Virtual for user's full name display
+
 userSchema.virtual('displayName').get(function() {
   return this.name || this.email.split('@')[0];
 });
 
-// Hash password before saving
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   
@@ -115,12 +111,11 @@ userSchema.pre('save', async function(next) {
   next();
 });
 
-// Instance method to check password
-userSchema.methods.matchPassword = async function(enteredPassword) {
+UserSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Instance method to check if user has access to workspace
+
 userSchema.methods.hasWorkspaceAccess = function(workspaceId, requiredRole = 'member') {
   const roleHierarchy = ['viewer', 'member', 'admin', 'owner'];
   const userWorkspace = this.workspaces.find(ws => 
@@ -135,15 +130,14 @@ userSchema.methods.hasWorkspaceAccess = function(workspaceId, requiredRole = 'me
   return userRoleIndex >= requiredRoleIndex;
 };
 
-// Instance method to get user's role in a workspace
-userSchema.methods.getWorkspaceRole = function(workspaceId) {
-  const userWorkspace = this.workspaces.find(ws => 
+UserSchema.methods.getWorkspaceRole = function(workspaceId) {
+  const workspace = this.workspaces.find(ws => 
     ws.workspace.toString() === workspaceId.toString()
   );
-  return userWorkspace ? userWorkspace.role : null;
+  return workspace ? workspace.role : null;
 };
 
-// Static method to find users by workspace
+
 userSchema.statics.findByWorkspace = function(workspaceId) {
   return this.find({
     'workspaces.workspace': workspaceId,

@@ -22,7 +22,6 @@ const projectSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  // Project settings
   color: {
     type: String,
     default: '#3B82F6', // Blue
@@ -32,7 +31,6 @@ const projectSchema = new mongoose.Schema({
     type: String,
     default: 'folder'
   },
-  // Project workflow stages
   columns: [{
     id: {
       type: String,
@@ -56,7 +54,6 @@ const projectSchema = new mongoose.Schema({
       default: false
     }
   }],
-  // Project members and their roles
   members: [{
     user: {
       type: mongoose.Schema.ObjectId,
@@ -77,23 +74,19 @@ const projectSchema = new mongoose.Schema({
       ref: 'User'
     }
   }],
-  // Project status
   status: {
     type: String,
     enum: ['active', 'archived', 'completed', 'on-hold'],
     default: 'active'
   },
-  // Project dates
   startDate: Date,
   dueDate: Date,
   completedAt: Date,
-  // Project visibility
   visibility: {
     type: String,
     enum: ['private', 'workspace', 'public'],
     default: 'workspace'
   },
-  // Project statistics
   stats: {
     totalTasks: {
       type: Number,
@@ -109,7 +102,6 @@ const projectSchema = new mongoose.Schema({
     },
     lastActivity: Date
   },
-  // Project settings
   settings: {
     allowComments: {
       type: Boolean,
@@ -132,7 +124,6 @@ const projectSchema = new mongoose.Schema({
       default: true
     }
   },
-  // Template information (if project was created from template)
   template: {
     isTemplate: {
       type: Boolean,
@@ -154,32 +145,27 @@ const projectSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Indexes
 projectSchema.index({ workspace: 1, status: 1 });
 projectSchema.index({ owner: 1 });
 projectSchema.index({ 'members.user': 1 });
 projectSchema.index({ status: 1, isActive: 1 });
 projectSchema.index({ dueDate: 1 });
 
-// Virtual for tasks
 projectSchema.virtual('tasks', {
   ref: 'Task',
   localField: '_id',
   foreignField: 'project'
 });
 
-// Virtual for progress percentage
 projectSchema.virtual('progress').get(function() {
   if (this.stats.totalTasks === 0) return 0;
   return Math.round((this.stats.completedTasks / this.stats.totalTasks) * 100);
 });
 
-// Virtual for overdue status
 projectSchema.virtual('isOverdue').get(function() {
   return this.dueDate && new Date() > this.dueDate && this.status !== 'completed';
 });
 
-// Pre-save middleware to set default columns
 projectSchema.pre('save', function(next) {
   if (this.isNew && this.columns.length === 0) {
     this.columns = [
@@ -192,7 +178,6 @@ projectSchema.pre('save', function(next) {
   next();
 });
 
-// Method to check if user is project member
 projectSchema.methods.isMember = function(userId) {
   return this.members.some(member => 
     member.user.toString() === userId.toString()
