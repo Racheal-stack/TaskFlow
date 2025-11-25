@@ -574,5 +574,5 @@ Socket drops on very slow internet
 
 9. 📞 Contact
 Developer: Racheal Joseph
- Email: josephracheal902@gmail.com
+ Email: [contact-email-hidden-for-security]
 
