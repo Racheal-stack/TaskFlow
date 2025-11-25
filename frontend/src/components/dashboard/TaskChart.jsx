@@ -1,116 +1,1 @@
-import { useState } from 'react'
-
-const TaskChart = () => {
-  const [timeFilter, setTimeFilter] = useState('Monthly')
-  
-  // Sample data points for the chart
-  const dataPoints = [
-    { month: 'Jan', value: 65 },
-    { month: 'Feb', value: 45 },
-    { month: 'Mar', value: 80 },
-    { month: 'Apr', value: 70 },
-    { month: 'May', value: 85 },
-    { month: 'Jun', value: 95 },
-    { month: 'Jul', value: 90 }
-  ]
-
-  const maxValue = Math.max(...dataPoints.map(d => d.value))
-
-  return (
-    <div className="relative">
-      {/* Chart Area */}
-      <div className="h-64 flex items-end justify-between px-4">
-        {/* Y-axis labels */}
-        <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-400 py-2">
-          <span>100</span>
-          <span>80</span>
-          <span>60</span>
-          <span>40</span>
-          <span>20</span>
-          <span>0</span>
-        </div>
-
-        {/* Chart bars/line */}
-        <div className="flex-1 ml-8 h-full relative">
-          <svg className="w-full h-full" viewBox="0 0 400 200">
-            {/* Grid lines */}
-            {[0, 40, 80, 120, 160, 200].map((y) => (
-              <line
-                key={y}
-                x1="0"
-                y1={y}
-                x2="400"
-                y2={y}
-                stroke="#f3f4f6"
-                strokeWidth="1"
-              />
-            ))}
-
-            {/* Area chart */}
-            <defs>
-              <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.1" />
-              </linearGradient>
-            </defs>
-
-            {/* Create path for area chart */}
-            <path
-              d={`M 0,${200 - (dataPoints[0].value / maxValue) * 160} 
-                  ${dataPoints.map((point, index) => 
-                    `L ${(index * 400) / (dataPoints.length - 1)},${200 - (point.value / maxValue) * 160}`
-                  ).join(' ')}
-                  L 400,200 L 0,200 Z`}
-              fill="url(#gradient)"
-            />
-
-            {/* Line */}
-            <path
-              d={`M 0,${200 - (dataPoints[0].value / maxValue) * 160} 
-                  ${dataPoints.map((point, index) => 
-                    `L ${(index * 400) / (dataPoints.length - 1)},${200 - (point.value / maxValue) * 160}`
-                  ).join(' ')}`}
-              fill="none"
-              stroke="#8B5CF6"
-              strokeWidth="3"
-            />
-
-            {/* Data points */}
-            {dataPoints.map((point, index) => (
-              <circle
-                key={index}
-                cx={(index * 400) / (dataPoints.length - 1)}
-                cy={200 - (point.value / maxValue) * 160}
-                r="4"
-                fill="#8B5CF6"
-              />
-            ))}
-          </svg>
-        </div>
-      </div>
-
-      {/* X-axis labels */}
-      <div className="flex justify-between px-12 mt-4">
-        {dataPoints.map((point, index) => (
-          <span key={index} className="text-xs text-gray-400">
-            {point.month}
-          </span>
-        ))}
-      </div>
-
-      {/* Chart Legend */}
-      <div className="flex items-center space-x-6 mt-6 px-4">
-        <div className="flex items-center space-x-2">
-          <div className="w-3 h-3 bg-cyan-400 rounded-full"></div>
-          <span className="text-sm text-gray-600 dark:text-gray-400">Last Week</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-          <span className="text-sm text-gray-600 dark:text-gray-400">This Week</span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export default TaskChart
+import { useState } from 'react'const TaskChart = () => {  const [timeFilter, setTimeFilter] = useState('Monthly')  const dataPoints = [    { month: 'Jan', value: 65 },    { month: 'Feb', value: 45 },    { month: 'Mar', value: 80 },    { month: 'Apr', value: 70 },    { month: 'May', value: 85 },    { month: 'Jun', value: 95 },    { month: 'Jul', value: 90 }  ]  const maxValue = Math.max(...dataPoints.map(d => d.value))  return (    <div className="relative">      {}      <div className="h-64 flex items-end justify-between px-4">        {}        <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-400 py-2">          <span>100</span>          <span>80</span>          <span>60</span>          <span>40</span>          <span>20</span>          <span>0</span>        </div>        {}        <div className="flex-1 ml-8 h-full relative">          <svg className="w-full h-full" viewBox="0 0 400 200">            {}            {[0, 40, 80, 120, 160, 200].map((y) => (              <line                key={y}                x1="0"                y1={y}                x2="400"                y2={y}                stroke="#f3f4f6"                strokeWidth="1"              />            ))}            {}            <defs>              <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">                <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.3" />                <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.1" />              </linearGradient>            </defs>            {}            <path              d={`M 0,${200 - (dataPoints[0].value / maxValue) * 160}                   ${dataPoints.map((point, index) =>                     `L ${(index * 400) / (dataPoints.length - 1)},${200 - (point.value / maxValue) * 160}`                  ).join(' ')}                  L 400,200 L 0,200 Z`}              fill="url(#gradient)"            />            {}            <path              d={`M 0,${200 - (dataPoints[0].value / maxValue) * 160}                   ${dataPoints.map((point, index) =>                     `L ${(index * 400) / (dataPoints.length - 1)},${200 - (point.value / maxValue) * 160}`                  ).join(' ')}`}              fill="none"              stroke="#8B5CF6"              strokeWidth="3"            />            {}            {dataPoints.map((point, index) => (              <circle                key={index}                cx={(index * 400) / (dataPoints.length - 1)}                cy={200 - (point.value / maxValue) * 160}                r="4"                fill="#8B5CF6"              />            ))}          </svg>        </div>      </div>      {}      <div className="flex justify-between px-12 mt-4">        {dataPoints.map((point, index) => (          <span key={index} className="text-xs text-gray-400">            {point.month}          </span>        ))}      </div>      {}      <div className="flex items-center space-x-6 mt-6 px-4">        <div className="flex items-center space-x-2">          <div className="w-3 h-3 bg-cyan-400 rounded-full"></div>          <span className="text-sm text-gray-600 dark:text-gray-400">Last Week</span>        </div>        <div className="flex items-center space-x-2">          <div className="w-3 h-3 bg-purple-500 rounded-full"></div>          <span className="text-sm text-gray-600 dark:text-gray-400">This Week</span>        </div>      </div>    </div>  )}export default TaskChart

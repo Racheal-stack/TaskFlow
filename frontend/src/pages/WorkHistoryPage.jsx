@@ -1,228 +1,1 @@
-import { useState } from 'react'
-import { Clock, Calendar, Users, MoreVertical, Plus, Filter, Search } from 'lucide-react'
-
-const WorkHistoryPage = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState('This Month')
-  
-  const historyData = [
-    {
-      id: 1,
-      date: '2025-11-25',
-      tasks: [
-        { name: 'Dashboard Design', duration: '2h 30m', project: 'TaskFlow App', status: 'completed' },
-        { name: 'API Integration', duration: '1h 45m', project: 'Backend', status: 'completed' },
-        { name: 'Code Review', duration: '45m', project: 'Frontend', status: 'completed' }
-      ],
-      totalTime: '5h 00m',
-      productivity: 92
-    },
-    {
-      id: 2,
-      date: '2025-11-24',
-      tasks: [
-        { name: 'User Research', duration: '3h 15m', project: 'TaskFlow App', status: 'completed' },
-        { name: 'Wireframing', duration: '2h 00m', project: 'Design System', status: 'completed' },
-        { name: 'Team Meeting', duration: '30m', project: 'General', status: 'completed' }
-      ],
-      totalTime: '5h 45m',
-      productivity: 88
-    },
-    {
-      id: 3,
-      date: '2025-11-23',
-      tasks: [
-        { name: 'Component Development', duration: '4h 00m', project: 'Frontend', status: 'completed' },
-        { name: 'Testing', duration: '1h 30m', project: 'QA', status: 'completed' },
-        { name: 'Documentation', duration: '1h 00m', project: 'Docs', status: 'completed' }
-      ],
-      totalTime: '6h 30m',
-      productivity: 95
-    }
-  ]
-
-  const weeklyStats = {
-    totalHours: '32h 15m',
-    avgDaily: '6h 27m',
-    tasksCompleted: 15,
-    avgProductivity: 91
-  }
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    })
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Work History</h1>
-          <p className="text-gray-600 dark:text-gray-400">Review your productivity and time allocation</p>
-        </div>
-
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-xl flex items-center justify-center">
-                <Clock className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{weeklyStats.totalHours}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Total Hours</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-xl flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{weeklyStats.avgDaily}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Avg Daily</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-xl flex items-center justify-center">
-                <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{weeklyStats.tasksCompleted}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Tasks Done</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-xl flex items-center justify-center">
-                <MoreVertical className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{weeklyStats.avgProductivity}%</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Productivity</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <select 
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              <option>This Week</option>
-              <option>This Month</option>
-              <option>Last Month</option>
-              <option>Last 3 Months</option>
-            </select>
-
-            <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              <Filter className="w-4 h-4" />
-              <span>Filter</span>
-            </button>
-
-            <div className="relative">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search tasks..."
-                className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm"
-              />
-            </div>
-          </div>
-
-          <button className="flex items-center space-x-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors">
-            <Plus className="w-4 h-4" />
-            <span>Export Data</span>
-          </button>
-        </div>
-
-        {/* History Timeline */}
-        <div className="space-y-6">
-          {historyData.map((day) => (
-            <div key={day.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
-              {/* Day Header */}
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {formatDate(day.date)}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {day.tasks.length} tasks completed
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center space-x-6">
-                    <div className="text-center">
-                      <div className="text-lg font-semibold text-gray-900 dark:text-white">{day.totalTime}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">Total Time</div>
-                    </div>
-                    
-                    <div className="text-center">
-                      <div className={`text-lg font-semibold ${
-                        day.productivity >= 90 ? 'text-green-600' : 
-                        day.productivity >= 80 ? 'text-yellow-600' : 'text-red-600'
-                      }`}>
-                        {day.productivity}%
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">Productivity</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Tasks List */}
-              <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                {day.tasks.map((task, index) => (
-                  <div key={index} className="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                        <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">{task.name}</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{task.project}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-4">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {task.duration}
-                        </div>
-                        
-                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          task.status === 'completed' 
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-                            : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
-                        }`}>
-                          {task.status}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export default WorkHistoryPage
+import { useState } from 'react'import { Clock, Calendar, Users, MoreVertical, Plus, Filter, Search } from 'lucide-react'const WorkHistoryPage = () => {  const [selectedPeriod, setSelectedPeriod] = useState('This Month')  const historyData = [    {      id: 1,      date: '2025-11-25',      tasks: [        { name: 'Dashboard Design', duration: '2h 30m', project: 'TaskFlow App', status: 'completed' },        { name: 'API Integration', duration: '1h 45m', project: 'Backend', status: 'completed' },        { name: 'Code Review', duration: '45m', project: 'Frontend', status: 'completed' }      ],      totalTime: '5h 00m',      productivity: 92    },    {      id: 2,      date: '2025-11-24',      tasks: [        { name: 'User Research', duration: '3h 15m', project: 'TaskFlow App', status: 'completed' },        { name: 'Wireframing', duration: '2h 00m', project: 'Design System', status: 'completed' },        { name: 'Team Meeting', duration: '30m', project: 'General', status: 'completed' }      ],      totalTime: '5h 45m',      productivity: 88    },    {      id: 3,      date: '2025-11-23',      tasks: [        { name: 'Component Development', duration: '4h 00m', project: 'Frontend', status: 'completed' },        { name: 'Testing', duration: '1h 30m', project: 'QA', status: 'completed' },        { name: 'Documentation', duration: '1h 00m', project: 'Docs', status: 'completed' }      ],      totalTime: '6h 30m',      productivity: 95    }  ]  const weeklyStats = {    totalHours: '32h 15m',    avgDaily: '6h 27m',    tasksCompleted: 15,    avgProductivity: 91  }  const formatDate = (dateString) => {    const date = new Date(dateString)    return date.toLocaleDateString('en-US', {       weekday: 'long',       year: 'numeric',       month: 'long',       day: 'numeric'     })  }  return (    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">      <div className="max-w-6xl mx-auto">        {}        <div className="mb-8">          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Work History</h1>          <p className="text-gray-600 dark:text-gray-400">Review your productivity and time allocation</p>        </div>        {}        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">            <div className="flex items-center space-x-3">              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-xl flex items-center justify-center">                <Clock className="w-6 h-6 text-purple-600 dark:text-purple-400" />              </div>              <div>                <div className="text-2xl font-bold text-gray-900 dark:text-white">{weeklyStats.totalHours}</div>                <div className="text-sm text-gray-600 dark:text-gray-400">Total Hours</div>              </div>            </div>          </div>          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">            <div className="flex items-center space-x-3">              <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-xl flex items-center justify-center">                <Calendar className="w-6 h-6 text-green-600 dark:text-green-400" />              </div>              <div>                <div className="text-2xl font-bold text-gray-900 dark:text-white">{weeklyStats.avgDaily}</div>                <div className="text-sm text-gray-600 dark:text-gray-400">Avg Daily</div>              </div>            </div>          </div>          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">            <div className="flex items-center space-x-3">              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-xl flex items-center justify-center">                <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />              </div>              <div>                <div className="text-2xl font-bold text-gray-900 dark:text-white">{weeklyStats.tasksCompleted}</div>                <div className="text-sm text-gray-600 dark:text-gray-400">Tasks Done</div>              </div>            </div>          </div>          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">            <div className="flex items-center space-x-3">              <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-xl flex items-center justify-center">                <MoreVertical className="w-6 h-6 text-orange-600 dark:text-orange-400" />              </div>              <div>                <div className="text-2xl font-bold text-gray-900 dark:text-white">{weeklyStats.avgProductivity}%</div>                <div className="text-sm text-gray-600 dark:text-gray-400">Productivity</div>              </div>            </div>          </div>        </div>        {}        <div className="flex items-center justify-between mb-6">          <div className="flex items-center space-x-4">            <select               value={selectedPeriod}              onChange={(e) => setSelectedPeriod(e.target.value)}              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"            >              <option>This Week</option>              <option>This Month</option>              <option>Last Month</option>              <option>Last 3 Months</option>            </select>            <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">              <Filter className="w-4 h-4" />              <span>Filter</span>            </button>            <div className="relative">              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />              <input                type="text"                placeholder="Search tasks..."                className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm"              />            </div>          </div>          <button className="flex items-center space-x-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors">            <Plus className="w-4 h-4" />            <span>Export Data</span>          </button>        </div>        {}        <div className="space-y-6">          {historyData.map((day) => (            <div key={day.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">              {}              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">                <div className="flex items-center justify-between">                  <div>                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">                      {formatDate(day.date)}                    </h3>                    <p className="text-sm text-gray-600 dark:text-gray-400">                      {day.tasks.length} tasks completed                    </p>                  </div>                  <div className="flex items-center space-x-6">                    <div className="text-center">                      <div className="text-lg font-semibold text-gray-900 dark:text-white">{day.totalTime}</div>                      <div className="text-xs text-gray-500 dark:text-gray-400">Total Time</div>                    </div>                    <div className="text-center">                      <div className={`text-lg font-semibold ${                        day.productivity >= 90 ? 'text-green-600' :                         day.productivity >= 80 ? 'text-yellow-600' : 'text-red-600'                      }`}>                        {day.productivity}%                      </div>                      <div className="text-xs text-gray-500 dark:text-gray-400">Productivity</div>                    </div>                  </div>                </div>              </div>              {}              <div className="divide-y divide-gray-200 dark:divide-gray-700">                {day.tasks.map((task, index) => (                  <div key={index} className="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">                    <div className="flex items-center justify-between">                      <div className="flex items-center space-x-4">                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>                        <div>                          <h4 className="font-medium text-gray-900 dark:text-white">{task.name}</h4>                          <p className="text-sm text-gray-600 dark:text-gray-400">{task.project}</p>                        </div>                      </div>                      <div className="flex items-center space-x-4">                        <div className="text-sm font-medium text-gray-900 dark:text-white">                          {task.duration}                        </div>                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${                          task.status === 'completed'                             ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'                            : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'                        }`}>                          {task.status}                        </div>                      </div>                    </div>                  </div>                ))}              </div>            </div>          ))}        </div>      </div>    </div>  )}export default WorkHistoryPage

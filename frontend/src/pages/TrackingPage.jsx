@@ -1,551 +1,1 @@
-import { useState } from 'react'
-import { Plus, Search, Filter, Calendar, Bug, CheckCircle, Clock, User, MoreHorizontal, Flag } from 'lucide-react'
-import DashboardLayout from '../components/layout/DashboardLayout'
-import {
-  DndContext,
-  DragOverlay,
-  closestCorners,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  useDroppable,
-} from '@dnd-kit/core'
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
-import {
-  useSortable,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-
-const TrackingPage = () => {
-  const [activeId, setActiveId] = useState(null)
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
-  
-  // Sample tasks data
-  const [tasks, setTasks] = useState({
-    'todo': [
-      {
-        id: '1',
-        title: 'The applications are not mobile responsive',
-        type: 'task',
-        assignee: { name: 'W', avatar: 'W', color: 'bg-blue-500' },
-        priority: 'low',
-        comments: 1
-      }
-    ],
-    'in-progress': [
-      {
-        id: '2',
-        title: 'POS System',
-        type: 'task',
-        assignee: { name: 'W', avatar: 'W', color: 'bg-blue-500' },
-        dueDate: 'Nov 11 - Nov 12 (2d)',
-        priority: 'urgent',
-        comments: 1
-      },
-      {
-        id: '3',
-        title: 'Truncate long service name when booking a Facility',
-        type: 'bug',
-        assignee: { name: 'RJ', avatar: 'RJ', color: 'bg-purple-500' },
-        startedDate: 'Started 6 days ago',
-        priority: 'low',
-        comments: 2
-      },
-      {
-        id: '4',
-        title: 'When Package Description and details text is written without a...',
-        type: 'task',
-        assignee: { name: 'A', avatar: 'A', color: 'bg-green-500' },
-        priority: 'medium'
-      }
-    ],
-    'blockers': [
-      {
-        id: '5',
-        title: 'Arabic Internationalization',
-        type: 'task',
-        assignee: { name: 'W', avatar: 'W', color: 'bg-blue-500' },
-        startedDate: 'Started Feb 10',
-        priority: 'high',
-        subtasks: '20 subtasks'
-      }
-    ],
-    'in-review': [
-      {
-        id: '6',
-        title: 'Separate tax from fees and charges across all products & services',
-        type: 'task',
-        assignee: { name: 'W', avatar: 'W', color: 'bg-blue-500' },
-        reviewers: [{ name: 'J', color: 'bg-orange-500' }],
-        priority: 'medium'
-      }
-    ],
-    'preview': [
-      {
-        id: '7',
-        title: 'Change "quantity" to "customers"',
-        type: 'bug',
-        assignee: { name: 'RJ', avatar: 'RJ', color: 'bg-purple-500' },
-        priority: 'low',
-        status: 'preview'
-      }
-    ]
-  })
-
-  const columns = [
-    { id: 'todo', title: 'TO DO', count: tasks.todo.length, color: 'text-gray-600' },
-    { id: 'in-progress', title: 'IN PROGRESS', count: tasks['in-progress'].length, color: 'text-blue-600' },
-    { id: 'blockers', title: 'BLOCKERS', count: tasks.blockers.length, color: 'text-red-600' },
-    { id: 'in-review', title: 'IN REVIEW', count: tasks['in-review'].length, color: 'text-yellow-600' },
-    { id: 'preview', title: 'PREVIEW', count: tasks.preview.length, color: 'text-green-600' }
-  ]
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  )
-
-  const handleDragStart = (event) => {
-    setActiveId(event.active.id)
-  }
-
-  const handleDragEnd = (event) => {
-    const { active, over } = event
-    
-    if (!over) {
-      setActiveId(null)
-      return
-    }
-
-    const activeColumn = findColumn(active.id)
-    let overColumn = over.id
-
-    // If dropping on a task, find its column
-    if (!columns.find(col => col.id === overColumn)) {
-      overColumn = findColumn(over.id)
-    }
-
-    if (activeColumn && overColumn && activeColumn !== overColumn) {
-      setTasks((prev) => {
-        const activeItems = [...prev[activeColumn]]
-        const taskIndex = activeItems.findIndex(item => item.id === active.id)
-        
-        if (taskIndex === -1) return prev
-        
-        const [movedTask] = activeItems.splice(taskIndex, 1)
-
-        return {
-          ...prev,
-          [activeColumn]: activeItems,
-          [overColumn]: [...prev[overColumn], movedTask]
-        }
-      })
-    }
-
-    setActiveId(null)
-  }
-
-  const findColumn = (taskId) => {
-    for (const [columnId, columnTasks] of Object.entries(tasks)) {
-      if (columnTasks.find(task => task.id === taskId)) {
-        return columnId
-      }
-    }
-    return null
-  }
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'urgent': return 'bg-red-500'
-      case 'high': return 'bg-orange-500'
-      case 'medium': return 'bg-yellow-500'
-      case 'low': return 'bg-green-500'
-      default: return 'bg-gray-500'
-    }
-  }
-
-  return (
-    <DashboardLayout>
-      <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Task Board</h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">Manage and track your team's tasks</p>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => setShowCreateModal(true)}
-                className="flex items-center space-x-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors font-medium"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Task</span>
-              </button>
-            </div>
-          </div>
-          
-          {/* Search and Filters */}
-          <div className="flex items-center space-x-4 mt-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search tasks..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-            
-            <button className="flex items-center space-x-2 px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              <Filter className="w-4 h-4" />
-              <span>Filter</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Kanban Board */}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide" style={{
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none'
-          }}>
-            {columns.map((column) => (
-              <KanbanColumn 
-                key={column.id} 
-                column={column} 
-                tasks={tasks[column.id]} 
-                onAddTask={() => setShowCreateModal(true)}
-              />
-            ))}
-          </div>
-
-          <DragOverlay>
-            {activeId ? (
-              <TaskCard 
-                task={Object.values(tasks)
-                  .flat()
-                  .find(task => task.id === activeId)
-                } 
-                isDragging 
-              />
-            ) : null}
-          </DragOverlay>
-        </DndContext>
-
-        {/* Create Task Modal */}
-        {showCreateModal && (
-          <CreateTaskModal 
-            onClose={() => setShowCreateModal(false)}
-            onSubmit={(taskData) => {
-              // Add task to todo column by default
-              const newTask = {
-                id: Date.now().toString(),
-                ...taskData
-              }
-              setTasks(prev => ({
-                ...prev,
-                todo: [...prev.todo, newTask]
-              }))
-              setShowCreateModal(false)
-            }}
-          />
-        )}
-      </div>
-    </DashboardLayout>
-  )
-}
-
-// Kanban Column Component
-const KanbanColumn = ({ column, tasks, onAddTask }) => {
-  const { setNodeRef, isOver } = useDroppable({
-    id: column.id,
-  })
-
-  return (
-    <div className="flex-shrink-0 w-80">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-        {/* Column Header */}
-        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <h3 className={`text-sm font-semibold uppercase tracking-wide ${column.color}`}>
-                {column.title}
-              </h3>
-              <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs px-2 py-1 rounded-full">
-                {column.count}
-              </span>
-            </div>
-            <button 
-              onClick={onAddTask}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Tasks List */}
-        <div 
-          ref={setNodeRef}
-          className={`p-3 space-y-3 min-h-[400px] transition-colors ${
-            isOver ? 'bg-gray-50 dark:bg-gray-700/50' : ''
-          }`}
-        >
-          <SortableContext 
-            items={tasks.map(task => task.id)} 
-            strategy={verticalListSortingStrategy}
-          >
-            {tasks.map((task) => (
-              <TaskCard key={task.id} task={task} />
-            ))}
-          </SortableContext>
-          
-          {/* Add Task Button */}
-          <button 
-            onClick={onAddTask}
-            className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-400 hover:text-gray-600 hover:border-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-500 transition-colors flex items-center justify-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="text-sm">Add Task</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Task Card Component
-const TaskCard = ({ task, isDragging }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({ id: task.id })
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  }
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'urgent': return 'bg-red-500'
-      case 'high': return 'bg-orange-500'
-      case 'medium': return 'bg-yellow-500'
-      case 'low': return 'bg-green-500'
-      default: return 'bg-gray-500'
-    }
-  }
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className={`bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 p-4 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow ${
-        isDragging ? 'opacity-50' : ''
-      }`}
-    >
-      {/* Task Header */}
-      <div className="flex items-start justify-between mb-3">
-        <h4 className="text-sm font-medium text-gray-900 dark:text-white leading-tight pr-2">
-          {task.title}
-        </h4>
-        <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0">
-          <MoreHorizontal className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Task Meta */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          {/* Assignee */}
-          <div className={`w-6 h-6 ${task.assignee.color} rounded-full flex items-center justify-center text-white text-xs font-medium`}>
-            {task.assignee.avatar}
-          </div>
-
-          {/* Type Badge */}
-          <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-            task.type === 'bug' 
-              ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' 
-              : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-          }`}>
-            {task.type === 'bug' ? 'bug' : 'task'}
-          </span>
-
-          {/* Priority */}
-          <div className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`}></div>
-        </div>
-
-        {/* Comments */}
-        {task.comments && (
-          <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
-            <CheckCircle className="w-4 h-4" />
-            <span className="text-xs">{task.comments}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Additional Info */}
-      {(task.dueDate || task.startedDate || task.subtasks) && (
-        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-600">
-          {task.dueDate && (
-            <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
-              <Calendar className="w-3 h-3" />
-              <span>{task.dueDate}</span>
-            </div>
-          )}
-          {task.startedDate && (
-            <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
-              <Clock className="w-3 h-3" />
-              <span>{task.startedDate}</span>
-            </div>
-          )}
-          {task.subtasks && (
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              {task.subtasks}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Reviewers */}
-      {task.reviewers && task.reviewers.length > 0 && (
-        <div className="mt-3 flex items-center space-x-2">
-          <span className="text-xs text-gray-500 dark:text-gray-400">Reviewers:</span>
-          {task.reviewers.map((reviewer, index) => (
-            <div key={index} className={`w-5 h-5 ${reviewer.color} rounded-full flex items-center justify-center text-white text-xs font-medium`}>
-              {reviewer.name}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// Create Task Modal Component
-const CreateTaskModal = ({ onClose, onSubmit }) => {
-  const [formData, setFormData] = useState({
-    title: '',
-    type: 'task',
-    priority: 'medium',
-    assignee: { name: 'You', avatar: 'Y', color: 'bg-purple-500' },
-    description: ''
-  })
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (formData.title.trim()) {
-      onSubmit(formData)
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Create New Task</h3>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Title
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter task title..."
-              autoFocus
-            />
-          </div>
-
-          <div className="flex space-x-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Type
-              </label>
-              <select
-                value={formData.type}
-                onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="task">Task</option>
-                <option value="bug">Bug</option>
-              </select>
-            </div>
-
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Priority
-              </label>
-              <select
-                value={formData.priority}
-                onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Description (Optional)
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter task description..."
-            />
-          </div>
-
-          <div className="flex justify-end space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
-            >
-              Create Task
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-export default TrackingPage
+import { useState } from 'react'import { Plus, Search, Filter, Calendar, Bug, CheckCircle, Clock, User, MoreHorizontal, Flag } from 'lucide-react'import DashboardLayout from '../components/layout/DashboardLayout'import {  DndContext,  DragOverlay,  closestCorners,  KeyboardSensor,  PointerSensor,  useSensor,  useSensors,  useDroppable,} from '@dnd-kit/core'import {  SortableContext,  sortableKeyboardCoordinates,  verticalListSortingStrategy,} from '@dnd-kit/sortable'import {  useSortable,} from '@dnd-kit/sortable'import { CSS } from '@dnd-kit/utilities'const TrackingPage = () => {  const [activeId, setActiveId] = useState(null)  const [showCreateModal, setShowCreateModal] = useState(false)  const [searchTerm, setSearchTerm] = useState('')  const [tasks, setTasks] = useState({    'todo': [      {        id: '1',        title: 'The applications are not mobile responsive',        type: 'task',        assignee: { name: 'W', avatar: 'W', color: 'bg-blue-500' },        priority: 'low',        comments: 1      }    ],    'in-progress': [      {        id: '2',        title: 'POS System',        type: 'task',        assignee: { name: 'W', avatar: 'W', color: 'bg-blue-500' },        dueDate: 'Nov 11 - Nov 12 (2d)',        priority: 'urgent',        comments: 1      },      {        id: '3',        title: 'Truncate long service name when booking a Facility',        type: 'bug',        assignee: { name: 'RJ', avatar: 'RJ', color: 'bg-purple-500' },        startedDate: 'Started 6 days ago',        priority: 'low',        comments: 2      },      {        id: '4',        title: 'When Package Description and details text is written without a...',        type: 'task',        assignee: { name: 'A', avatar: 'A', color: 'bg-green-500' },        priority: 'medium'      }    ],    'blockers': [      {        id: '5',        title: 'Arabic Internationalization',        type: 'task',        assignee: { name: 'W', avatar: 'W', color: 'bg-blue-500' },        startedDate: 'Started Feb 10',        priority: 'high',        subtasks: '20 subtasks'      }    ],    'in-review': [      {        id: '6',        title: 'Separate tax from fees and charges across all products & services',        type: 'task',        assignee: { name: 'W', avatar: 'W', color: 'bg-blue-500' },        reviewers: [{ name: 'J', color: 'bg-orange-500' }],        priority: 'medium'      }    ],    'preview': [      {        id: '7',        title: 'Change "quantity" to "customers"',        type: 'bug',        assignee: { name: 'RJ', avatar: 'RJ', color: 'bg-purple-500' },        priority: 'low',        status: 'preview'      }    ]  })  const columns = [    { id: 'todo', title: 'TO DO', count: tasks.todo.length, color: 'text-gray-600' },    { id: 'in-progress', title: 'IN PROGRESS', count: tasks['in-progress'].length, color: 'text-blue-600' },    { id: 'blockers', title: 'BLOCKERS', count: tasks.blockers.length, color: 'text-red-600' },    { id: 'in-review', title: 'IN REVIEW', count: tasks['in-review'].length, color: 'text-yellow-600' },    { id: 'preview', title: 'PREVIEW', count: tasks.preview.length, color: 'text-green-600' }  ]  const sensors = useSensors(    useSensor(PointerSensor),    useSensor(KeyboardSensor, {      coordinateGetter: sortableKeyboardCoordinates,    })  )  const handleDragStart = (event) => {    setActiveId(event.active.id)  }  const handleDragEnd = (event) => {    const { active, over } = event    if (!over) {      setActiveId(null)      return    }    const activeColumn = findColumn(active.id)    let overColumn = over.id    if (!columns.find(col => col.id === overColumn)) {      overColumn = findColumn(over.id)    }    if (activeColumn && overColumn && activeColumn !== overColumn) {      setTasks((prev) => {        const activeItems = [...prev[activeColumn]]        const taskIndex = activeItems.findIndex(item => item.id === active.id)        if (taskIndex === -1) return prev        const [movedTask] = activeItems.splice(taskIndex, 1)        return {          ...prev,          [activeColumn]: activeItems,          [overColumn]: [...prev[overColumn], movedTask]        }      })    }    setActiveId(null)  }  const findColumn = (taskId) => {    for (const [columnId, columnTasks] of Object.entries(tasks)) {      if (columnTasks.find(task => task.id === taskId)) {        return columnId      }    }    return null  }  const getPriorityColor = (priority) => {    switch (priority) {      case 'urgent': return 'bg-red-500'      case 'high': return 'bg-orange-500'      case 'medium': return 'bg-yellow-500'      case 'low': return 'bg-green-500'      default: return 'bg-gray-500'    }  }  return (    <DashboardLayout>      <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">        {}        <div className="mb-6">          <div className="flex items-center justify-between">            <div>              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Task Board</h1>              <p className="text-gray-600 dark:text-gray-400 mt-1">Manage and track your team's tasks</p>            </div>            <div className="flex items-center space-x-4">              <button                 onClick={() => setShowCreateModal(true)}                className="flex items-center space-x-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors font-medium"              >                <Plus className="w-4 h-4" />                <span>Add Task</span>              </button>            </div>          </div>          {}          <div className="flex items-center space-x-4 mt-4">            <div className="relative flex-1 max-w-md">              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />              <input                type="text"                placeholder="Search tasks..."                value={searchTerm}                onChange={(e) => setSearchTerm(e.target.value)}                className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"              />            </div>            <button className="flex items-center space-x-2 px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">              <Filter className="w-4 h-4" />              <span>Filter</span>            </button>          </div>        </div>        {}        <DndContext          sensors={sensors}          collisionDetection={closestCorners}          onDragStart={handleDragStart}          onDragEnd={handleDragEnd}        >          <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide" style={{            scrollbarWidth: 'none',            msOverflowStyle: 'none'          }}>            {columns.map((column) => (              <KanbanColumn                 key={column.id}                 column={column}                 tasks={tasks[column.id]}                 onAddTask={() => setShowCreateModal(true)}              />            ))}          </div>          <DragOverlay>            {activeId ? (              <TaskCard                 task={Object.values(tasks)                  .flat()                  .find(task => task.id === activeId)                }                 isDragging               />            ) : null}          </DragOverlay>        </DndContext>        {}        {showCreateModal && (          <CreateTaskModal             onClose={() => setShowCreateModal(false)}            onSubmit={(taskData) => {              const newTask = {                id: Date.now().toString(),                ...taskData              }              setTasks(prev => ({                ...prev,                todo: [...prev.todo, newTask]              }))              setShowCreateModal(false)            }}          />        )}      </div>    </DashboardLayout>  )}const KanbanColumn = ({ column, tasks, onAddTask }) => {  const { setNodeRef, isOver } = useDroppable({    id: column.id,  })  return (    <div className="flex-shrink-0 w-80">      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">        {}        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">          <div className="flex items-center justify-between">            <div className="flex items-center space-x-2">              <h3 className={`text-sm font-semibold uppercase tracking-wide ${column.color}`}>                {column.title}              </h3>              <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs px-2 py-1 rounded-full">                {column.count}              </span>            </div>            <button               onClick={onAddTask}              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"            >              <Plus className="w-4 h-4" />            </button>          </div>        </div>        {}        <div           ref={setNodeRef}          className={`p-3 space-y-3 min-h-[400px] transition-colors ${            isOver ? 'bg-gray-50 dark:bg-gray-700/50' : ''          }`}        >          <SortableContext             items={tasks.map(task => task.id)}             strategy={verticalListSortingStrategy}          >            {tasks.map((task) => (              <TaskCard key={task.id} task={task} />            ))}          </SortableContext>          {}          <button             onClick={onAddTask}            className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-400 hover:text-gray-600 hover:border-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-500 transition-colors flex items-center justify-center space-x-2"          >            <Plus className="w-4 h-4" />            <span className="text-sm">Add Task</span>          </button>        </div>      </div>    </div>  )}const TaskCard = ({ task, isDragging }) => {  const {    attributes,    listeners,    setNodeRef,    transform,    transition,  } = useSortable({ id: task.id })  const style = {    transform: CSS.Transform.toString(transform),    transition,  }  const getPriorityColor = (priority) => {    switch (priority) {      case 'urgent': return 'bg-red-500'      case 'high': return 'bg-orange-500'      case 'medium': return 'bg-yellow-500'      case 'low': return 'bg-green-500'      default: return 'bg-gray-500'    }  }  return (    <div      ref={setNodeRef}      style={style}      {...attributes}      {...listeners}      className={`bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 p-4 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow ${        isDragging ? 'opacity-50' : ''      }`}    >      {}      <div className="flex items-start justify-between mb-3">        <h4 className="text-sm font-medium text-gray-900 dark:text-white leading-tight pr-2">          {task.title}        </h4>        <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0">          <MoreHorizontal className="w-4 h-4" />        </button>      </div>      {}      <div className="flex items-center justify-between">        <div className="flex items-center space-x-2">          {}          <div className={`w-6 h-6 ${task.assignee.color} rounded-full flex items-center justify-center text-white text-xs font-medium`}>            {task.assignee.avatar}          </div>          {}          <span className={`px-2 py-1 text-xs rounded-full font-medium ${            task.type === 'bug'               ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'               : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'          }`}>            {task.type === 'bug' ? 'bug' : 'task'}          </span>          {}          <div className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`}></div>        </div>        {}        {task.comments && (          <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">            <CheckCircle className="w-4 h-4" />            <span className="text-xs">{task.comments}</span>          </div>        )}      </div>      {}      {(task.dueDate || task.startedDate || task.subtasks) && (        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-600">          {task.dueDate && (            <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">              <Calendar className="w-3 h-3" />              <span>{task.dueDate}</span>            </div>          )}          {task.startedDate && (            <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">              <Clock className="w-3 h-3" />              <span>{task.startedDate}</span>            </div>          )}          {task.subtasks && (            <div className="text-xs text-gray-500 dark:text-gray-400">              {task.subtasks}            </div>          )}        </div>      )}      {}      {task.reviewers && task.reviewers.length > 0 && (        <div className="mt-3 flex items-center space-x-2">          <span className="text-xs text-gray-500 dark:text-gray-400">Reviewers:</span>          {task.reviewers.map((reviewer, index) => (            <div key={index} className={`w-5 h-5 ${reviewer.color} rounded-full flex items-center justify-center text-white text-xs font-medium`}>              {reviewer.name}            </div>          ))}        </div>      )}    </div>  )}const CreateTaskModal = ({ onClose, onSubmit }) => {  const [formData, setFormData] = useState({    title: '',    type: 'task',    priority: 'medium',    assignee: { name: 'You', avatar: 'Y', color: 'bg-purple-500' },    description: ''  })  const handleSubmit = (e) => {    e.preventDefault()    if (formData.title.trim()) {      onSubmit(formData)    }  }  return (    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4">        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Create New Task</h3>        </div>        <form onSubmit={handleSubmit} className="p-6 space-y-4">          <div>            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">              Title            </label>            <input              type="text"              value={formData.title}              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"              placeholder="Enter task title..."              autoFocus            />          </div>          <div className="flex space-x-4">            <div className="flex-1">              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">                Type              </label>              <select                value={formData.type}                onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"              >                <option value="task">Task</option>                <option value="bug">Bug</option>              </select>            </div>            <div className="flex-1">              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">                Priority              </label>              <select                value={formData.priority}                onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value }))}                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"              >                <option value="low">Low</option>                <option value="medium">Medium</option>                <option value="high">High</option>                <option value="urgent">Urgent</option>              </select>            </div>          </div>          <div>            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">              Description (Optional)            </label>            <textarea              value={formData.description}              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}              rows={3}              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"              placeholder="Enter task description..."            />          </div>          <div className="flex justify-end space-x-3 pt-4">            <button              type="button"              onClick={onClose}              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"            >              Cancel            </button>            <button              type="submit"              className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"            >              Create Task            </button>          </div>        </form>      </div>    </div>  )}export default TrackingPage

@@ -1,114 +1,1 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useState } from 'react'
-
-const CalendarWidget = () => {
-  const [currentDate, setCurrentDate] = useState(new Date(2021, 2, 1)) // March 2021
-  
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ]
-  
-  const year = currentDate.getFullYear()
-  const month = currentDate.getMonth()
-  
-  // Get first day of month and number of days
-  const firstDayOfMonth = new Date(year, month, 1).getDay()
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  
-  // Generate calendar days
-  const calendarDays = []
-  
-  // Add empty cells for days before month starts
-  for (let i = 0; i < firstDayOfMonth; i++) {
-    calendarDays.push(null)
-  }
-  
-  // Add days of the month
-  for (let day = 1; day <= daysInMonth; day++) {
-    calendarDays.push(day)
-  }
-  
-  // Highlighted dates (sample)
-  const highlightedDates = [13, 15, 20]
-  const today = 13 // Sample today date
-
-  const navigateMonth = (direction) => {
-    const newDate = new Date(currentDate)
-    newDate.setMonth(newDate.getMonth() + direction)
-    setCurrentDate(newDate)
-  }
-
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
-      {/* Calendar Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {monthNames[month]} {year}
-          </h3>
-        </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => navigateMonth(-1)}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4 text-gray-500" />
-          </button>
-          <button
-            onClick={() => navigateMonth(1)}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            <ChevronRight className="w-4 h-4 text-gray-500" />
-          </button>
-        </div>
-      </div>
-
-      {/* Days of week header */}
-      <div className="grid grid-cols-7 gap-1 mb-2">
-        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
-          <div key={index} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 py-2">
-            {day}
-          </div>
-        ))}
-      </div>
-
-      {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-1">
-        {calendarDays.map((day, index) => (
-          <div key={index} className="aspect-square flex items-center justify-center">
-            {day && (
-              <button
-                className={`w-8 h-8 text-sm rounded-lg transition-colors ${
-                  day === today
-                    ? 'bg-purple-500 text-white font-semibold'
-                    : highlightedDates.includes(day)
-                    ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400 font-medium'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                }`}
-              >
-                {day}
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Calendar Legend */}
-      <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-            <span className="text-gray-600 dark:text-gray-400">Today</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-purple-100 dark:bg-purple-900/20 rounded-full"></div>
-            <span className="text-gray-600 dark:text-gray-400">Events</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export default CalendarWidget
+import { ChevronLeft, ChevronRight } from 'lucide-react'import { useState } from 'react'const CalendarWidget = () => {  const [currentDate, setCurrentDate] = useState(new Date(2021, 2, 1)) // March 2021  const monthNames = [    'January', 'February', 'March', 'April', 'May', 'June',    'July', 'August', 'September', 'October', 'November', 'December'  ]  const year = currentDate.getFullYear()  const month = currentDate.getMonth()  const firstDayOfMonth = new Date(year, month, 1).getDay()  const daysInMonth = new Date(year, month + 1, 0).getDate()  const calendarDays = []  for (let i = 0; i < firstDayOfMonth; i++) {    calendarDays.push(null)  }  for (let day = 1; day <= daysInMonth; day++) {    calendarDays.push(day)  }  const highlightedDates = [13, 15, 20]  const today = 13 // Sample today date  const navigateMonth = (direction) => {    const newDate = new Date(currentDate)    newDate.setMonth(newDate.getMonth() + direction)    setCurrentDate(newDate)  }  return (    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">      {}      <div className="flex items-center justify-between mb-6">        <div>          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">            {monthNames[month]} {year}          </h3>        </div>        <div className="flex items-center space-x-2">          <button            onClick={() => navigateMonth(-1)}            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"          >            <ChevronLeft className="w-4 h-4 text-gray-500" />          </button>          <button            onClick={() => navigateMonth(1)}            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"          >            <ChevronRight className="w-4 h-4 text-gray-500" />          </button>        </div>      </div>      {}      <div className="grid grid-cols-7 gap-1 mb-2">        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (          <div key={index} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 py-2">            {day}          </div>        ))}      </div>      {}      <div className="grid grid-cols-7 gap-1">        {calendarDays.map((day, index) => (          <div key={index} className="aspect-square flex items-center justify-center">            {day && (              <button                className={`w-8 h-8 text-sm rounded-lg transition-colors ${                  day === today                    ? 'bg-purple-500 text-white font-semibold'                    : highlightedDates.includes(day)                    ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400 font-medium'                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'                }`}              >                {day}              </button>            )}          </div>        ))}      </div>      {}      <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">        <div className="flex items-center justify-between text-sm">          <div className="flex items-center space-x-2">            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>            <span className="text-gray-600 dark:text-gray-400">Today</span>          </div>          <div className="flex items-center space-x-2">            <div className="w-3 h-3 bg-purple-100 dark:bg-purple-900/20 rounded-full"></div>            <span className="text-gray-600 dark:text-gray-400">Events</span>          </div>        </div>      </div>    </div>  )}export default CalendarWidget

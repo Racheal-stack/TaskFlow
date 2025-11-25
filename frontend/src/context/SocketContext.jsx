@@ -1,232 +1,1 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react'
-import { io } from 'socket.io-client'
-import { useAuth } from './AuthContext'
-import toast from 'react-hot-toast'
-import Cookies from 'js-cookie'
-
-const SocketContext = createContext()
-
-export const SocketProvider = ({ children }) => {
-  const [socket, setSocket] = useState(null)
-  const [isConnected, setIsConnected] = useState(false)
-  const [onlineUsers, setOnlineUsers] = useState([])
-  const { user } = useAuth()
-  const reconnectTimeoutRef = useRef(null)
-
-  useEffect(() => {
-    if (user && !socket) {
-      connectSocket()
-    }
-
-    return () => {
-      if (socket) {
-        disconnectSocket()
-      }
-    }
-  }, [user])
-
-  const connectSocket = () => {
-    const token = Cookies.get('token')
-    if (!token) return
-
-    const newSocket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
-      auth: { token },
-      transports: ['websocket', 'polling'],
-      timeout: 20000,
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    })
-
-    // Connection events
-    newSocket.on('connect', () => {
-      console.log('Socket connected:', newSocket.id)
-      setIsConnected(true)
-      
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current)
-        reconnectTimeoutRef.current = null
-      }
-    })
-
-    newSocket.on('disconnect', (reason) => {
-      console.log('Socket disconnected:', reason)
-      setIsConnected(false)
-      
-      if (reason === 'io server disconnect') {
-        // Server disconnected the socket, reconnect manually
-        reconnectTimeoutRef.current = setTimeout(() => {
-          newSocket.connect()
-        }, 2000)
-      }
-    })
-
-    newSocket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error)
-      setIsConnected(false)
-      
-      if (error.message === 'Authentication token required' || 
-          error.message === 'Invalid authentication token') {
-        toast.error('Authentication expired. Please log in again.')
-      }
-    })
-
-    // Real-time events
-    newSocket.on('task_updated', (data) => {
-      toast.success(`Task updated by ${data.updatedBy.name}`)
-      // Trigger re-fetch of tasks or update local state
-    })
-
-    newSocket.on('task_position_changed', (data) => {
-      // Handle real-time task movement
-      console.log('Task moved:', data)
-    })
-
-    newSocket.on('comment_added', (data) => {
-      toast.success(`New comment from ${data.author.name}`)
-    })
-
-    newSocket.on('user_typing', (data) => {
-      // Handle typing indicators
-      console.log(`${data.user.name} is typing...`)
-    })
-
-    newSocket.on('user_stopped_typing', (data) => {
-      // Handle stopped typing
-      console.log('User stopped typing:', data.userId)
-    })
-
-    newSocket.on('user_presence_changed', (data) => {
-      setOnlineUsers(prev => {
-        const updated = prev.filter(u => u.userId !== data.userId)
-        if (data.status === 'active') {
-          updated.push(data)
-        }
-        return updated
-      })
-    })
-
-    newSocket.on('user_went_offline', (data) => {
-      setOnlineUsers(prev => prev.filter(u => u.userId !== data.userId))
-    })
-
-    // Project-specific events
-    newSocket.on('project_updated', (data) => {
-      toast.success('Project updated')
-    })
-
-    newSocket.on('member_added', (data) => {
-      toast.success(`${data.member.name} joined the project`)
-    })
-
-    newSocket.on('member_removed', (data) => {
-      toast.info(`${data.member.name} left the project`)
-    })
-
-    setSocket(newSocket)
-  }
-
-  const disconnectSocket = () => {
-    if (socket) {
-      socket.disconnect()
-      setSocket(null)
-      setIsConnected(false)
-      setOnlineUsers([])
-    }
-
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current)
-      reconnectTimeoutRef.current = null
-    }
-  }
-
-  // Socket event emitters
-  const joinProject = (projectId) => {
-    if (socket) {
-      socket.emit('join_project', projectId)
-    }
-  }
-
-  const leaveProject = (projectId) => {
-    if (socket) {
-      socket.emit('leave_project', projectId)
-    }
-  }
-
-  const updateTask = (taskData) => {
-    if (socket) {
-      socket.emit('task_update', taskData)
-    }
-  }
-
-  const moveTask = (taskData) => {
-    if (socket) {
-      socket.emit('task_moved', taskData)
-    }
-  }
-
-  const startTyping = (projectId, taskId) => {
-    if (socket) {
-      socket.emit('typing_start', { projectId, taskId })
-    }
-  }
-
-  const stopTyping = (projectId, taskId) => {
-    if (socket) {
-      socket.emit('typing_stop', { projectId, taskId })
-    }
-  }
-
-  const addComment = (commentData) => {
-    if (socket) {
-      socket.emit('new_comment', commentData)
-    }
-  }
-
-  const updatePresence = (workspaceId, status, currentProject = null) => {
-    if (socket) {
-      socket.emit('update_presence', { workspaceId, status, currentProject })
-    }
-  }
-
-  // Custom hook for listening to specific events
-  const useSocketEvent = (event, callback) => {
-    useEffect(() => {
-      if (socket) {
-        socket.on(event, callback)
-        return () => socket.off(event, callback)
-      }
-    }, [socket, event, callback])
-  }
-
-  const value = {
-    socket,
-    isConnected,
-    onlineUsers,
-    joinProject,
-    leaveProject,
-    updateTask,
-    moveTask,
-    startTyping,
-    stopTyping,
-    addComment,
-    updatePresence,
-    useSocketEvent,
-    connectSocket,
-    disconnectSocket
-  }
-
-  return (
-    <SocketContext.Provider value={value}>
-      {children}
-    </SocketContext.Provider>
-  )
-}
-
-export const useSocket = () => {
-  const context = useContext(SocketContext)
-  if (!context) {
-    throw new Error('useSocket must be used within a SocketProvider')
-  }
-  return context
-}
+import { createContext, useContext, useEffect, useRef, useState } from 'react'import { io } from 'socket.io-client'import { useAuth } from './AuthContext'import toast from 'react-hot-toast'import Cookies from 'js-cookie'const SocketContext = createContext()export const SocketProvider = ({ children }) => {  const [socket, setSocket] = useState(null)  const [isConnected, setIsConnected] = useState(false)  const [onlineUsers, setOnlineUsers] = useState([])  const { user } = useAuth()  const reconnectTimeoutRef = useRef(null)  useEffect(() => {    if (user && !socket) {      connectSocket()    }    return () => {      if (socket) {        disconnectSocket()      }    }  }, [user])  const connectSocket = () => {    const token = Cookies.get('token')    if (!token) return    const newSocket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {      auth: { token },      transports: ['websocket', 'polling'],      timeout: 20000,      reconnection: true,      reconnectionAttempts: 5,      reconnectionDelay: 1000,    })    newSocket.on('connect', () => {      console.log('Socket connected:', newSocket.id)      setIsConnected(true)      if (reconnectTimeoutRef.current) {        clearTimeout(reconnectTimeoutRef.current)        reconnectTimeoutRef.current = null      }    })    newSocket.on('disconnect', (reason) => {      console.log('Socket disconnected:', reason)      setIsConnected(false)      if (reason === 'io server disconnect') {        reconnectTimeoutRef.current = setTimeout(() => {          newSocket.connect()        }, 2000)      }    })    newSocket.on('connect_error', (error) => {      console.error('Socket connection error:', error)      setIsConnected(false)      if (error.message === 'Authentication token required' ||           error.message === 'Invalid authentication token') {        toast.error('Authentication expired. Please log in again.')      }    })    newSocket.on('task_updated', (data) => {      toast.success(`Task updated by ${data.updatedBy.name}`)    })    newSocket.on('task_position_changed', (data) => {      console.log('Task moved:', data)    })    newSocket.on('comment_added', (data) => {      toast.success(`New comment from ${data.author.name}`)    })    newSocket.on('user_typing', (data) => {      console.log(`${data.user.name} is typing...`)    })    newSocket.on('user_stopped_typing', (data) => {      console.log('User stopped typing:', data.userId)    })    newSocket.on('user_presence_changed', (data) => {      setOnlineUsers(prev => {        const updated = prev.filter(u => u.userId !== data.userId)        if (data.status === 'active') {          updated.push(data)        }        return updated      })    })    newSocket.on('user_went_offline', (data) => {      setOnlineUsers(prev => prev.filter(u => u.userId !== data.userId))    })    newSocket.on('project_updated', (data) => {      toast.success('Project updated')    })    newSocket.on('member_added', (data) => {      toast.success(`${data.member.name} joined the project`)    })    newSocket.on('member_removed', (data) => {      toast.info(`${data.member.name} left the project`)    })    setSocket(newSocket)  }  const disconnectSocket = () => {    if (socket) {      socket.disconnect()      setSocket(null)      setIsConnected(false)      setOnlineUsers([])    }    if (reconnectTimeoutRef.current) {      clearTimeout(reconnectTimeoutRef.current)      reconnectTimeoutRef.current = null    }  }  const joinProject = (projectId) => {    if (socket) {      socket.emit('join_project', projectId)    }  }  const leaveProject = (projectId) => {    if (socket) {      socket.emit('leave_project', projectId)    }  }  const updateTask = (taskData) => {    if (socket) {      socket.emit('task_update', taskData)    }  }  const moveTask = (taskData) => {    if (socket) {      socket.emit('task_moved', taskData)    }  }  const startTyping = (projectId, taskId) => {    if (socket) {      socket.emit('typing_start', { projectId, taskId })    }  }  const stopTyping = (projectId, taskId) => {    if (socket) {      socket.emit('typing_stop', { projectId, taskId })    }  }  const addComment = (commentData) => {    if (socket) {      socket.emit('new_comment', commentData)    }  }  const updatePresence = (workspaceId, status, currentProject = null) => {    if (socket) {      socket.emit('update_presence', { workspaceId, status, currentProject })    }  }  const useSocketEvent = (event, callback) => {    useEffect(() => {      if (socket) {        socket.on(event, callback)        return () => socket.off(event, callback)      }    }, [socket, event, callback])  }  const value = {    socket,    isConnected,    onlineUsers,    joinProject,    leaveProject,    updateTask,    moveTask,    startTyping,    stopTyping,    addComment,    updatePresence,    useSocketEvent,    connectSocket,    disconnectSocket  }  return (    <SocketContext.Provider value={value}>      {children}    </SocketContext.Provider>  )}export const useSocket = () => {  const context = useContext(SocketContext)  if (!context) {    throw new Error('useSocket must be used within a SocketProvider')  }  return context}

@@ -1,87 +1,1 @@
-const express = require('express');
-const { body } = require('express-validator');
-const {
-  getMeetings,
-  getMeeting,
-  createMeeting,
-  updateMeeting,
-  deleteMeeting,
-  updateAttendeeResponse,
-  getUpcomingMeetings
-} = require('../controllers/meetingController');
-const { protect } = require('../middleware/auth');
-
-const router = express.Router();
-
-// Protect all routes
-router.use(protect);
-
-// Validation middleware
-const meetingValidation = [
-  body('title')
-    .trim()
-    .isLength({ min: 1, max: 100 })
-    .withMessage('Title must be between 1 and 100 characters'),
-  body('startTime')
-    .isISO8601()
-    .withMessage('Start time must be a valid date'),
-  body('endTime')
-    .isISO8601()
-    .withMessage('End time must be a valid date'),
-  body('description')
-    .optional()
-    .trim()
-    .isLength({ max: 1000 })
-    .withMessage('Description cannot exceed 1000 characters'),
-  body('location')
-    .optional()
-    .trim()
-    .isLength({ max: 200 })
-    .withMessage('Location cannot exceed 200 characters'),
-  body('type')
-    .optional()
-    .isIn(['meeting', 'call', 'workshop', 'presentation', 'other'])
-    .withMessage('Invalid meeting type'),
-  body('priority')
-    .optional()
-    .isIn(['low', 'medium', 'high'])
-    .withMessage('Invalid priority level'),
-  body('attendees')
-    .optional()
-    .isArray()
-    .withMessage('Attendees must be an array'),
-  body('attendees.*')
-    .optional()
-    .isEmail()
-    .withMessage('Each attendee must be a valid email address'),
-  body('meetingLink')
-    .optional()
-    .isURL()
-    .withMessage('Meeting link must be a valid URL'),
-  body('color')
-    .optional()
-    .matches(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
-    .withMessage('Color must be a valid hex color code')
-];
-
-const responseValidation = [
-  body('status')
-    .isIn(['accepted', 'declined', 'maybe'])
-    .withMessage('Status must be accepted, declined, or maybe')
-];
-
-// Routes
-router.route('/')
-  .get(getMeetings)
-  .post(meetingValidation, createMeeting);
-
-router.get('/upcoming', getUpcomingMeetings);
-
-router.route('/:id')
-  .get(getMeeting)
-  .put(meetingValidation, updateMeeting)
-  .delete(deleteMeeting);
-
-router.put('/:id/response', responseValidation, updateAttendeeResponse);
-
-module.exports = router;
+const express = require('express');const { body } = require('express-validator');const {  getMeetings,  getMeeting,  createMeeting,  updateMeeting,  deleteMeeting,  updateAttendeeResponse,  getUpcomingMeetings} = require('../controllers/meetingController');const { protect } = require('../middleware/auth');const router = express.Router();router.use(protect);const meetingValidation = [  body('title')    .trim()    .isLength({ min: 1, max: 100 })    .withMessage('Title must be between 1 and 100 characters'),  body('startTime')    .isISO8601()    .withMessage('Start time must be a valid date'),  body('endTime')    .isISO8601()    .withMessage('End time must be a valid date'),  body('description')    .optional()    .trim()    .isLength({ max: 1000 })    .withMessage('Description cannot exceed 1000 characters'),  body('location')    .optional()    .trim()    .isLength({ max: 200 })    .withMessage('Location cannot exceed 200 characters'),  body('type')    .optional()    .isIn(['meeting', 'call', 'workshop', 'presentation', 'other'])    .withMessage('Invalid meeting type'),  body('priority')    .optional()    .isIn(['low', 'medium', 'high'])    .withMessage('Invalid priority level'),  body('attendees')    .optional()    .isArray()    .withMessage('Attendees must be an array'),  body('attendees.*')    .optional()    .isEmail()    .withMessage('Each attendee must be a valid email address'),  body('meetingLink')    .optional()    .isURL()    .withMessage('Meeting link must be a valid URL'),  body('color')    .optional()    .matches(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)    .withMessage('Color must be a valid hex color code')];const responseValidation = [  body('status')    .isIn(['accepted', 'declined', 'maybe'])    .withMessage('Status must be accepted, declined, or maybe')];router.route('/')  .get(getMeetings)  .post(meetingValidation, createMeeting);router.get('/upcoming', getUpcomingMeetings);router.route('/:id')  .get(getMeeting)  .put(meetingValidation, updateMeeting)  .delete(deleteMeeting);router.put('/:id/response', responseValidation, updateAttendeeResponse);module.exports = router;
