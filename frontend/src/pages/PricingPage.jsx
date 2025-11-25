@@ -1,0 +1,60 @@
+const PricingPage = () => {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="container py-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">Pricing</h1>
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="bg-white p-8 rounded-lg shadow">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Free Plan</h2>
+            <p className="text-4xl font-bold text-gray-900 mb-6">$0<span className="text-lg text-gray-600">/month</span></p>
+            <ul className="space-y-3 mb-8">
+              <li className="flex items-center text-gray-600">
+                <span className="text-green-500 mr-2">✓</span>
+                Up to 3 projects
+              </li>
+              <li className="flex items-center text-gray-600">
+                <span className="text-green-500 mr-2">✓</span>
+                Up to 5 team members
+              </li>
+              <li className="flex items-center text-gray-600">
+                <span className="text-green-500 mr-2">✓</span>
+                Basic task management
+              </li>
+            </ul>
+            <button className="btn btn-outline w-full">Get Started Free</button>
+          </div>
+          
+          <div className="bg-primary-600 text-white p-8 rounded-lg shadow">
+            <h2 className="text-2xl font-bold mb-4">Pro Plan</h2>
+            <p className="text-4xl font-bold mb-6">$19<span className="text-lg opacity-75">/month</span></p>
+            <ul className="space-y-3 mb-8">
+              <li className="flex items-center">
+                <span className="text-primary-200 mr-2">✓</span>
+                Unlimited projects
+              </li>
+              <li className="flex items-center">
+                <span className="text-primary-200 mr-2">✓</span>
+                Unlimited team members
+              </li>
+              <li className="flex items-center">
+                <span className="text-primary-200 mr-2">✓</span>
+                Advanced features
+              </li>
+              <li className="flex items-center">
+                <span className="text-primary-200 mr-2">✓</span>
+                File uploads
+              </li>
+              <li className="flex items-center">
+                <span className="text-primary-200 mr-2">✓</span>
+                Automation rules
+              </li>
+            </ul>
+            <button className="btn bg-white text-primary-600 hover:bg-gray-50 w-full">Upgrade to Pro</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default PricingPage

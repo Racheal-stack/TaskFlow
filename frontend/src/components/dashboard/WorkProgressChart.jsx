@@ -1,0 +1,70 @@
+const WorkProgressChart = () => {
+  const projects = [
+    {
+      name: 'Dashboard Design',
+      progress: 75,
+      color: 'bg-purple-500',
+      lightColor: 'bg-purple-100',
+      darkColor: 'bg-purple-900/20'
+    },
+    {
+      name: 'App UI UX Design',
+      progress: 60,
+      color: 'bg-cyan-500',
+      lightColor: 'bg-cyan-100', 
+      darkColor: 'bg-cyan-900/20'
+    }
+  ]
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Work Progress</h3>
+        <button className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+          See All
+        </button>
+      </div>
+
+      <div className="space-y-6">
+        {projects.map((project, index) => (
+          <div key={index} className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-gray-900 dark:text-white">
+                {project.name}
+              </h4>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {project.progress}%
+              </span>
+            </div>
+            
+            {/* Progress bar */}
+            <div className={`w-full ${project.lightColor} dark:${project.darkColor} rounded-full h-2`}>
+              <div 
+                className={`${project.color} h-2 rounded-full transition-all duration-300`}
+                style={{ width: `${project.progress}%` }}
+              ></div>
+            </div>
+
+            {/* Project details */}
+            <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+              <span>3 days remaining</span>
+              <div className="flex items-center space-x-1">
+                <span>Start Date:</span>
+                <span className="font-medium">23 Feb</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Add new task button */}
+      <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
+        <button className="w-full py-3 border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:border-purple-300 hover:text-purple-500 transition-colors">
+          + Add New Task
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export default WorkProgressChart

@@ -1,0 +1,134 @@
+const express = require('express');
+const { body } = require('express-validator');
+const {
+  register,
+  login,
+  verifyEmail,
+  resendVerificationCode,
+  getMe,
+  updateProfile,
+  changePassword,
+  forgotPassword,
+  resetPassword,
+  logout,
+  switchWorkspace,
+  testEmail,
+  getEmailStatus
+} = require('../controllers/authController');
+const { protect } = require('../middleware/auth');
+
+const router = express.Router();
+
+// Validation rules
+const registerValidation = [
+  body('name')
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Name must be between 2 and 100 characters'),
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email'),
+  body('password')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters'),
+  body('workspaceName')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Workspace name must be between 2 and 100 characters')
+];
+
+const loginValidation = [
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email'),
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required')
+];
+
+const profileValidation = [
+  body('name')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Name must be between 2 and 100 characters'),
+  body('avatar')
+    .optional()
+    .isURL()
+    .withMessage('Avatar must be a valid URL'),
+  body('preferences.theme')
+    .optional()
+    .isIn(['light', 'dark', 'auto'])
+    .withMessage('Theme must be light, dark, or auto'),
+  body('preferences.timezone')
+    .optional()
+    .isString()
+    .withMessage('Timezone must be a string')
+];
+
+const passwordValidation = [
+  body('currentPassword')
+    .notEmpty()
+    .withMessage('Current password is required'),
+  body('newPassword')
+    .isLength({ min: 6 })
+    .withMessage('New password must be at least 6 characters')
+];
+
+const forgotPasswordValidation = [
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email')
+];
+
+const resetPasswordValidation = [
+  body('password')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters')
+];
+
+const switchWorkspaceValidation = [
+  body('workspaceId')
+    .isMongoId()
+    .withMessage('Valid workspace ID is required')
+];
+
+const verifyEmailValidation = [
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email'),
+  body('verificationCode')
+    .isLength({ min: 6, max: 6 })
+    .withMessage('Verification code must be 6 digits')
+];
+
+const resendVerificationValidation = [
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email')
+];
+
+// Routes
+router.post('/register', registerValidation, register);
+router.post('/login', loginValidation, login);
+router.post('/verify-email', verifyEmailValidation, verifyEmail);
+router.post('/resend-verification', resendVerificationValidation, resendVerificationCode);
+router.post('/logout', logout);
+router.get('/me', protect, getMe);
+router.put('/profile', protect, profileValidation, updateProfile);
+router.put('/password', protect, passwordValidation, changePassword);
+router.post('/forgot-password', forgotPasswordValidation, forgotPassword);
+router.post('/reset-password/:token', resetPasswordValidation, resetPassword);
+router.post('/switch-workspace', protect, switchWorkspaceValidation, switchWorkspace);
+
+// Admin routes for email testing
+router.post('/test-email', protect, testEmail);
+router.get('/email-status', protect, getEmailStatus);
+
+module.exports = router;

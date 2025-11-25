@@ -1,0 +1,403 @@
+import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { ArrowRight, CheckCircle, Users, BarChart, Zap, Star, Menu, X, BarChart3 } from 'lucide-react'
+import ThemeToggle from '../components/common/ThemeToggle'
+
+const LandingPage = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [activeFeature, setActiveFeature] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveFeature((prev) => (prev + 1) % 4)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const features = [
+    {
+      icon: <Users className="w-6 h-6" />,
+      title: "Team Collaboration",
+      description: "Work together seamlessly with your team members in real-time"
+    },
+    {
+      icon: <CheckCircle className="w-6 h-6" />,
+      title: "Task Management",
+      description: "Create, assign, and track tasks through customizable workflows"
+    },
+    {
+      icon: <BarChart className="w-6 h-6" />,
+      title: "Analytics & Insights",
+      description: "Get detailed insights into your team's productivity and progress"
+    },
+    {
+      icon: <Zap className="w-6 h-6" />,
+      title: "Automation",
+      description: "Automate repetitive tasks and focus on what matters most"
+    }
+  ]
+
+  const testimonials = [
+    {
+      name: "Sarah Johnson",
+      role: "Project Manager",
+      company: "TechCorp",
+      quote: "TaskFlow has revolutionized how our team manages projects. The real-time collaboration features are incredible!",
+      rating: 5
+    },
+    {
+      name: "Mike Chen",
+      role: "Team Lead",
+      company: "StartupXYZ",
+      quote: "We've increased our productivity by 40% since switching to TaskFlow. Highly recommended!",
+      rating: 5
+    },
+    {
+      name: "Lisa Rodriguez",
+      role: "Operations Director",
+      company: "GrowthCo",
+      quote: "The analytics help us identify bottlenecks and optimize our workflows effectively.",
+      rating: 5
+    }
+  ]
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors">
+      {/* Navigation */}
+      <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <Link to="/" className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center shadow-lg">
+                  <CheckCircle className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">TaskFlow</div>
+              </Link>
+            </div>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4">
+              <a href="#features" className="text-gray-700 dark:text-gray-300 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">
+                Features
+              </a>
+              <Link 
+                to="/pricing" 
+                className="text-gray-700 dark:text-gray-300 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors"
+              >
+                Pricing
+              </Link>
+              <a href="#testimonials" className="text-gray-700 dark:text-gray-300 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">
+                Reviews
+              </a>
+              <Link 
+                to="/login" 
+                className="text-gray-700 dark:text-gray-300 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors"
+              >
+                Sign in
+              </Link>
+              <ThemeToggle size="sm" className="mr-2" />
+              <Link 
+                to="/register" 
+                className="btn btn-primary"
+              >
+                Get Started
+              </Link>
+            </div>
+
+            {/* Mobile menu button */}
+            <div className="md:hidden">
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 p-2 transition-colors"
+              >
+                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Navigation */}
+          {isMenuOpen && (
+            <div className="md:hidden py-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <div className="flex flex-col space-y-4">
+                <a href="#features" className="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                  Features
+                </a>
+                <Link to="/pricing" className="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                  Pricing  
+                </Link>
+                <a href="#testimonials" className="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                  Reviews
+                </a>
+                <Link to="/login" className="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                  Sign In
+                </Link>
+                <ThemeToggle size="sm" className="self-start" />
+                <Link to="/register" className="btn btn-primary w-full">
+                  Get Started
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+              Streamline Your Team's
+              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent block">Workflow</span>
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+              TaskFlow helps teams manage tasks, track progress, and collaborate effectively. 
+              From small startups to large enterprises, organize your work like never before.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link 
+                to="/register" 
+                className="btn btn-primary btn-lg inline-flex items-center"
+              >
+                Start Free Trial
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Link>
+              <Link 
+                to="/demo" 
+                className="btn btn-outline btn-lg"
+              >
+                View Demo
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="py-20 bg-white dark:bg-gray-900 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+              Everything you need to succeed
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Powerful features designed to help your team stay organized and productive
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <div 
+                key={index} 
+                className={`text-center p-6 rounded-xl transition-all duration-300 cursor-pointer ${
+                  activeFeature === index 
+                    ? 'bg-primary-50 shadow-lg border border-primary-200 transform scale-105' 
+                    : 'hover:shadow-lg hover:bg-gray-50'
+                }`}
+                onMouseEnter={() => setActiveFeature(index)}
+              >
+                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-lg mb-4 transition-colors ${
+                  activeFeature === index ? 'bg-primary-600 text-white' : 'bg-primary-100 text-primary-600'
+                }`}>
+                  {feature.icon}
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Dashboard Preview */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Beautiful, intuitive interface
+            </h2>
+            <p className="text-xl text-gray-600">
+              Designed for teams who value both functionality and aesthetics
+            </p>
+          </div>
+          
+          <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center space-x-2">
+              <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+              <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+              <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+              <div className="ml-4 text-sm text-gray-600 font-medium">TaskFlow Dashboard</div>
+            </div>
+            <div className="p-8">
+              <div className="grid grid-cols-4 gap-6 mb-8">
+                <div className="bg-primary-50 p-4 rounded-lg text-center">
+                  <div className="text-3xl font-bold text-primary-600">1,247</div>
+                  <div className="text-sm text-gray-600">Total Tasks</div>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg text-center">
+                  <div className="text-3xl font-bold text-green-600">923</div>
+                  <div className="text-sm text-gray-600">Completed</div>
+                </div>
+                <div className="bg-yellow-50 p-4 rounded-lg text-center">
+                  <div className="text-3xl font-bold text-yellow-600">287</div>
+                  <div className="text-sm text-gray-600">In Progress</div>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-lg text-center">
+                  <div className="text-3xl font-bold text-purple-600">37</div>
+                  <div className="text-sm text-gray-600">Overdue</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-6">
+                <div className="col-span-2 bg-gray-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-gray-900 mb-4">Recent Projects</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-3 bg-white rounded-lg">
+                      <span className="font-medium text-gray-900">Website Redesign</span>
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">On Track</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-white rounded-lg">
+                      <span className="font-medium text-gray-900">Mobile App Development</span>
+                      <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">At Risk</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-white rounded-lg">
+                      <span className="font-medium text-gray-900">Marketing Campaign</span>
+                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Planning</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-gray-900 mb-4">Team Activity</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white text-xs font-medium">
+                        SJ
+                      </div>
+                      <div className="text-sm text-gray-600">Sarah completed 3 tasks</div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-medium">
+                        MC
+                      </div>
+                      <div className="text-sm text-gray-600">Mike updated project status</div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-medium">
+                        LR
+                      </div>
+                      <div className="text-sm text-gray-600">Lisa added new milestone</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section id="testimonials" className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Loved by teams worldwide
+            </h2>
+            <p className="text-xl text-gray-600">
+              Join thousands of teams already using TaskFlow to boost their productivity
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <div key={index} className="bg-white rounded-xl p-8 shadow-lg border border-gray-100">
+                <div className="flex items-center mb-4">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                  ))}
+                </div>
+                <p className="text-gray-600 text-lg mb-6 italic">
+                  "{testimonial.quote}"
+                </p>
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold">
+                    {testimonial.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div className="ml-4">
+                    <div className="font-semibold text-gray-900">{testimonial.name}</div>
+                    <div className="text-sm text-gray-600">{testimonial.role}</div>
+                    <div className="text-sm text-primary-600">{testimonial.company}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-r from-primary-600 to-purple-600">
+        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+            Ready to transform your workflow?
+          </h2>
+          <p className="text-xl text-primary-100 mb-8">
+            Join thousands of teams already using TaskFlow to boost their productivity
+          </p>
+          <Link 
+            to="/register" 
+            className="btn btn-lg bg-white text-primary-600 hover:bg-gray-50 inline-flex items-center"
+          >
+            Start Your Free Trial
+            <ArrowRight className="ml-2 w-5 h-5" />
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div>
+              <div className="text-2xl font-bold mb-4">TaskFlow</div>
+              <p className="text-gray-400">
+                The modern way to manage team workflows and boost productivity.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4">Product</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link to="/features" className="hover:text-white">Features</Link></li>
+                <li><Link to="/pricing" className="hover:text-white">Pricing</Link></li>
+                <li><Link to="/integrations" className="hover:text-white">Integrations</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4">Company</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link to="/about" className="hover:text-white">About</Link></li>
+                <li><Link to="/blog" className="hover:text-white">Blog</Link></li>
+                <li><Link to="/careers" className="hover:text-white">Careers</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4">Support</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link to="/help" className="hover:text-white">Help Center</Link></li>
+                <li><Link to="/contact" className="hover:text-white">Contact</Link></li>
+                <li><Link to="/status" className="hover:text-white">Status</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; 2025 TaskFlow. All rights reserved. Built with ❤️ for productive teams.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}
+
+export default LandingPage

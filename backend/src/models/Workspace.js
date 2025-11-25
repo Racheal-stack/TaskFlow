@@ -1,0 +1,223 @@
+const mongoose = require('mongoose');
+
+const workspaceSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Please provide a workspace name'],
+    trim: true,
+    maxlength: [100, 'Workspace name cannot be more than 100 characters']
+  },
+  description: {
+    type: String,
+    maxlength: [500, 'Description cannot be more than 500 characters'],
+    trim: true
+  },
+  slug: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true,
+    match: [/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens']
+  },
+  logo: {
+    type: String,
+    default: ''
+  },
+  owner: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  // Subscription details
+  subscription: {
+    plan: {
+      type: String,
+      enum: ['free', 'pro'],
+      default: 'free'
+    },
+    status: {
+      type: String,
+      enum: ['active', 'inactive', 'cancelled', 'past_due'],
+      default: 'active'
+    },
+    stripeCustomerId: String,
+    stripeSubscriptionId: String,
+    currentPeriodStart: Date,
+    currentPeriodEnd: Date,
+    cancelAtPeriodEnd: {
+      type: Boolean,
+      default: false
+    }
+  },
+  // Plan limits
+  limits: {
+    maxProjects: {
+      type: Number,
+      default: 3 // Free plan limit
+    },
+    maxMembers: {
+      type: Number,
+      default: 5 // Free plan limit
+    },
+    maxStorageGB: {
+      type: Number,
+      default: 1 // Free plan limit
+    },
+    hasAutomation: {
+      type: Boolean,
+      default: false
+    },
+    hasFileUploads: {
+      type: Boolean,
+      default: false
+    },
+    hasActivityHistory: {
+      type: Boolean,
+      default: false
+    }
+  },
+  // Usage tracking
+  usage: {
+    projectCount: {
+      type: Number,
+      default: 0
+    },
+    memberCount: {
+      type: Number,
+      default: 1
+    },
+    storageUsedGB: {
+      type: Number,
+      default: 0
+    }
+  },
+  // Workspace settings
+  settings: {
+    timezone: {
+      type: String,
+      default: 'UTC'
+    },
+    workingDays: [{
+      type: String,
+      enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+    }],
+    workingHours: {
+      start: {
+        type: String,
+        default: '09:00'
+      },
+      end: {
+        type: String,
+        default: '17:00'
+      }
+    },
+    dateFormat: {
+      type: String,
+      enum: ['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD'],
+      default: 'MM/DD/YYYY'
+    },
+    allowGuestAccess: {
+      type: Boolean,
+      default: false
+    },
+    requireEmailVerification: {
+      type: Boolean,
+      default: true
+    }
+  },
+  // Members (populated from User.workspaces)
+  memberCount: {
+    type: Number,
+    default: 1
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  // Invitation settings
+  inviteToken: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  inviteExpires: Date,
+  allowPublicInvite: {
+    type: Boolean,
+    default: false
+  }
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+// Indexes (slug index is automatically created by unique: true)
+workspaceSchema.index({ owner: 1 });
+workspaceSchema.index({ 'subscription.stripeCustomerId': 1 });
+workspaceSchema.index({ isActive: 1 });
+
+// Virtual for projects count
+workspaceSchema.virtual('projectCount', {
+  ref: 'Project',
+  localField: '_id',
+  foreignField: 'workspace',
+  count: true
+});
+
+// Virtual for members
+workspaceSchema.virtual('members', {
+  ref: 'User',
+  localField: '_id',
+  foreignField: 'workspaces.workspace'
+});
+
+// Pre-save middleware to generate slug
+workspaceSchema.pre('save', function(next) {
+  if (this.isModified('name') && !this.slug) {
+    this.slug = this.name
+      .toLowerCase()
+      .replace(/[^a-z0-9 ]/g, '')
+      .replace(/\s+/g, '-')
+      .substring(0, 50);
+  }
+  next();
+});
+
+// Method to check if workspace can add more projects
+workspaceSchema.methods.canAddProject = function() {
+  return this.usage.projectCount < this.limits.maxProjects;
+};
+
+// Method to check if workspace can add more members
+workspaceSchema.methods.canAddMember = function() {
+  return this.usage.memberCount < this.limits.maxMembers;
+};
+
+// Method to check if feature is available
+workspaceSchema.methods.hasFeature = function(feature) {
+  if (this.subscription.plan === 'pro') {
+    return true;
+  }
+  
+  const freeFeatures = ['basicTasks', 'basicProjects', 'basicDashboard'];
+  return freeFeatures.includes(feature);
+};
+
+// Method to upgrade limits for pro plan
+workspaceSchema.methods.upgradeToPro = function() {
+  this.limits.maxProjects = 999999; // Unlimited
+  this.limits.maxMembers = 999999; // Unlimited
+  this.limits.maxStorageGB = 100; // 100GB
+  this.limits.hasAutomation = true;
+  this.limits.hasFileUploads = true;
+  this.limits.hasActivityHistory = true;
+  this.subscription.plan = 'pro';
+};
+
+// Static method to find by slug
+workspaceSchema.statics.findBySlug = function(slug) {
+  return this.findOne({ slug, isActive: true });
+};
+
+module.exports = mongoose.model('Workspace', workspaceSchema);

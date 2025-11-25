@@ -1,0 +1,182 @@
+import React, { useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { 
+  LayoutDashboard, 
+  Activity, 
+  FolderOpen, 
+  History, 
+  Inbox, 
+  Settings,
+  Calendar,
+  CheckCircle,
+  LogOut,
+  AlertTriangle
+} from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
+import ThemeToggle from '../common/ThemeToggle'
+
+const DashboardLayout = ({ children }) => {
+  const { user, logout } = useAuth()
+  const location = useLocation()
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+
+  const sidebarItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+    { id: 'tracking', label: 'Tracking', icon: Activity, path: '/tracking' },
+    { id: 'projects', label: 'Projects', icon: FolderOpen, path: '/projects' },
+    { id: 'calendar', label: 'Calendar', icon: Calendar, path: '/calendar' },
+    { id: 'work-history', label: 'Work History', icon: History, path: '/work-history' }
+  ]
+
+  const toolItems = [
+    { id: 'inbox', label: 'Inbox', icon: Inbox, path: '/inbox' },
+    { id: 'setting', label: 'Settings', icon: Settings, path: '/settings' }
+  ]
+
+  return (
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Sidebar */}
+      <div className="w-64 bg-white dark:bg-gray-800 shadow-lg flex flex-col">
+        {/* Logo */}
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center shadow-lg">
+              <CheckCircle className="w-5 h-5 text-white" />
+            </div>
+            <div className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              TaskFlow
+            </div>
+          </Link>
+        </div>
+
+        {/* User Profile */}
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+              <span className="text-white font-semibold text-sm">
+                {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
+              </span>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                {user?.name || 'User'}
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {user?.email || 'user@example.com'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <div className="flex-1 px-4 py-6">
+          <nav className="space-y-2">
+            {sidebarItems.map((item) => {
+              const isActive = location.pathname === item.path
+              return (
+                <Link
+                  key={item.id}
+                  to={item.path}
+                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                    isActive
+                      ? 'bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-700 dark:text-purple-300 border-r-2 border-purple-500'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <item.icon className="w-5 h-5 mr-3" />
+                  {item.label}
+                </Link>
+              )
+            })}
+          </nav>
+
+          {/* Tools Section */}
+          <div className="mt-8">
+            <h3 className="px-4 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
+              Tools
+            </h3>
+            <nav className="space-y-2">
+              {toolItems.map((item) => {
+                const isActive = location.pathname === item.path
+                return (
+                  <Link
+                    key={item.id}
+                    to={item.path}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive
+                        ? 'bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-700 dark:text-purple-300'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <item.icon className="w-5 h-5 mr-3" />
+                    {item.label}
+                  </Link>
+                )
+              })}
+            </nav>
+          </div>
+        </div>
+
+        {/* Footer with Theme Toggle and Logout */}
+        <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-4">
+            <ThemeToggle size="sm" />
+            <button
+              onClick={() => setShowLogoutModal(true)}
+              className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+            >
+              <LogOut className="w-3 h-3" />
+              <span>Sign out</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {children}
+      </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="flex-shrink-0">
+                <AlertTriangle className="w-6 h-6 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                  Confirm Sign Out
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Are you sure you want to sign out of your account?
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowLogoutModal(false)
+                  logout()
+                }}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default DashboardLayout

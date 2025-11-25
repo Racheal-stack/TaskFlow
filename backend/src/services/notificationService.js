@@ -1,0 +1,280 @@
+class NotificationService {
+  constructor() {
+    this.io = null;
+  }
+
+  // Initialize with Socket.IO instance
+  initialize(io) {
+    this.io = io;
+    console.log('🔔 Notification service initialized');
+  }
+
+  // Send real-time notification to specific user
+  async sendToUser(userId, notification) {
+    if (!this.io) {
+      console.warn('Socket.IO not initialized');
+      return;
+    }
+
+    try {
+      // Send to user's room
+      this.io.to(`user_${userId}`).emit('notification', {
+        id: notification.id || Date.now().toString(),
+        type: notification.type,
+        title: notification.title,
+        message: notification.message,
+        data: notification.data || {},
+        timestamp: new Date(),
+        read: false
+      });
+
+      console.log(`📨 Notification sent to user ${userId}:`, notification.title);
+    } catch (error) {
+      console.error('Failed to send notification:', error);
+    }
+  }
+
+  // Send notification to all users in a workspace
+  async sendToWorkspace(workspaceId, notification, excludeUserId = null) {
+    if (!this.io) return;
+
+    try {
+      const room = `workspace_${workspaceId}`;
+      const socketNotification = {
+        id: notification.id || Date.now().toString(),
+        type: notification.type,
+        title: notification.title,
+        message: notification.message,
+        data: notification.data || {},
+        timestamp: new Date(),
+        read: false
+      };
+
+      if (excludeUserId) {
+        // Send to all users in workspace except the specified user
+        const sockets = await this.io.in(room).fetchSockets();
+        sockets.forEach(socket => {
+          if (socket.userId !== excludeUserId) {
+            socket.emit('notification', socketNotification);
+          }
+        });
+      } else {
+        // Send to all users in workspace
+        this.io.to(room).emit('notification', socketNotification);
+      }
+
+      console.log(`📢 Notification sent to workspace ${workspaceId}:`, notification.title);
+    } catch (error) {
+      console.error('Failed to send workspace notification:', error);
+    }
+  }
+
+  // Send notification to project members
+  async sendToProject(projectId, notification, excludeUserId = null) {
+    if (!this.io) return;
+
+    try {
+      const room = `project_${projectId}`;
+      const socketNotification = {
+        id: notification.id || Date.now().toString(),
+        type: notification.type,
+        title: notification.title,
+        message: notification.message,
+        data: notification.data || {},
+        timestamp: new Date(),
+        read: false
+      };
+
+      if (excludeUserId) {
+        const sockets = await this.io.in(room).fetchSockets();
+        sockets.forEach(socket => {
+          if (socket.userId !== excludeUserId) {
+            socket.emit('notification', socketNotification);
+          }
+        });
+      } else {
+        this.io.to(room).emit('notification', socketNotification);
+      }
+
+      console.log(`📋 Notification sent to project ${projectId}:`, notification.title);
+    } catch (error) {
+      console.error('Failed to send project notification:', error);
+    }
+  }
+
+  // Task-related notifications
+  async notifyTaskCreated(task, createdBy) {
+    const notification = {
+      type: 'task_created',
+      title: 'New Task Created',
+      message: `${createdBy.name} created a new task: "${task.title}"`,
+      data: {
+        taskId: task._id,
+        projectId: task.project,
+        createdBy: createdBy._id
+      }
+    };
+
+    // Notify project members (except creator)
+    await this.sendToProject(task.project, notification, createdBy._id);
+
+    // Notify assigned user if different from creator
+    if (task.assignee && task.assignee.toString() !== createdBy._id.toString()) {
+      await this.sendToUser(task.assignee, {
+        ...notification,
+        title: 'Task Assigned to You',
+        message: `${createdBy.name} assigned you a task: "${task.title}"`
+      });
+    }
+  }
+
+  async notifyTaskStatusChanged(task, updatedBy, oldStatus, newStatus) {
+    const notification = {
+      type: 'task_status_changed',
+      title: 'Task Status Updated',
+      message: `${updatedBy.name} moved "${task.title}" from ${oldStatus} to ${newStatus}`,
+      data: {
+        taskId: task._id,
+        projectId: task.project,
+        oldStatus,
+        newStatus,
+        updatedBy: updatedBy._id
+      }
+    };
+
+    await this.sendToProject(task.project, notification, updatedBy._id);
+  }
+
+  async notifyTaskCommentAdded(task, comment, addedBy) {
+    const notification = {
+      type: 'task_comment',
+      title: 'New Comment',
+      message: `${addedBy.name} commented on "${task.title}"`,
+      data: {
+        taskId: task._id,
+        projectId: task.project,
+        commentId: comment._id,
+        addedBy: addedBy._id
+      }
+    };
+
+    await this.sendToProject(task.project, notification, addedBy._id);
+  }
+
+  // Project-related notifications
+  async notifyProjectMemberAdded(project, newMember, addedBy) {
+    const notification = {
+      type: 'project_member_added',
+      title: 'Added to Project',
+      message: `${addedBy.name} added you to the project "${project.name}"`,
+      data: {
+        projectId: project._id,
+        workspaceId: project.workspace,
+        addedBy: addedBy._id
+      }
+    };
+
+    await this.sendToUser(newMember._id, notification);
+  }
+
+  async notifyProjectDeadlineApproaching(project, daysLeft) {
+    const notification = {
+      type: 'project_deadline',
+      title: 'Project Deadline Approaching',
+      message: `"${project.name}" is due in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`,
+      data: {
+        projectId: project._id,
+        dueDate: project.dueDate,
+        daysLeft
+      }
+    };
+
+    await this.sendToProject(project._id, notification);
+  }
+
+  // Workspace-related notifications
+  async notifyWorkspaceMemberAdded(workspace, newMember, addedBy) {
+    const notification = {
+      type: 'workspace_member_added',
+      title: 'Added to Workspace',
+      message: `${addedBy.name} added you to the workspace "${workspace.name}"`,
+      data: {
+        workspaceId: workspace._id,
+        addedBy: addedBy._id
+      }
+    };
+
+    await this.sendToUser(newMember._id, notification);
+  }
+
+  // System notifications
+  async notifySystemMaintenance(message, scheduledTime) {
+    const notification = {
+      type: 'system_maintenance',
+      title: 'System Maintenance Scheduled',
+      message: message,
+      data: {
+        scheduledTime,
+        type: 'maintenance'
+      }
+    };
+
+    // Broadcast to all connected users
+    if (this.io) {
+      this.io.emit('notification', notification);
+    }
+  }
+
+  // Subscription/billing notifications
+  async notifySubscriptionExpiring(user, workspace, daysLeft) {
+    const notification = {
+      type: 'subscription_expiring',
+      title: 'Subscription Expiring Soon',
+      message: `Your subscription for "${workspace.name}" expires in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`,
+      data: {
+        workspaceId: workspace._id,
+        daysLeft,
+        subscriptionId: workspace.subscription?.id
+      }
+    };
+
+    await this.sendToUser(user._id, notification);
+  }
+
+  // Helper method to join user to their rooms
+  async joinUserRooms(socket, userId, workspaceIds = [], projectIds = []) {
+    try {
+      // Join user-specific room
+      socket.join(`user_${userId}`);
+      
+      // Join workspace rooms
+      workspaceIds.forEach(workspaceId => {
+        socket.join(`workspace_${workspaceId}`);
+      });
+      
+      // Join project rooms
+      projectIds.forEach(projectId => {
+        socket.join(`project_${projectId}`);
+      });
+      
+      // Store user ID in socket for filtering
+      socket.userId = userId;
+      
+      console.log(`👤 User ${userId} joined notification rooms`);
+    } catch (error) {
+      console.error('Failed to join user rooms:', error);
+    }
+  }
+
+  // Helper method to leave user rooms
+  async leaveUserRooms(socket, userId) {
+    try {
+      socket.leave(`user_${userId}`);
+      console.log(`👋 User ${userId} left notification rooms`);
+    } catch (error) {
+      console.error('Failed to leave user rooms:', error);
+    }
+  }
+}
+
+module.exports = new NotificationService();

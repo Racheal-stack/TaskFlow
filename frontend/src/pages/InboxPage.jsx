@@ -1,0 +1,264 @@
+import { useState } from 'react'
+import { Mail, Archive, Trash2, Star, Search, Filter, MoreVertical, Reply, Forward, Clock } from 'lucide-react'
+
+const InboxPage = () => {
+  const [selectedFilter, setSelectedFilter] = useState('all')
+  const [selectedEmails, setSelectedEmails] = useState([])
+
+  const emails = [
+    {
+      id: 1,
+      sender: 'Sarah Johnson',
+      senderEmail: 'sarah.johnson@company.com',
+      subject: 'Project Update - Dashboard Design',
+      preview: 'Hey! I wanted to give you an update on the dashboard design progress. We have completed the wireframes and...',
+      time: '10:30 AM',
+      read: false,
+      important: true,
+      hasAttachment: false,
+      category: 'work'
+    },
+    {
+      id: 2,
+      sender: 'TaskFlow Team',
+      senderEmail: 'notifications@taskflow.com',
+      subject: 'Your weekly productivity report',
+      preview: 'This week you completed 15 tasks with an average productivity score of 91%. Here are your detailed metrics...',
+      time: '09:15 AM',
+      read: true,
+      important: false,
+      hasAttachment: true,
+      category: 'notification'
+    },
+    {
+      id: 3,
+      sender: 'Mike Chen',
+      senderEmail: 'mike.chen@company.com',
+      subject: 'Code Review Request - Authentication Module',
+      preview: 'Could you please review the authentication module I just pushed? The PR includes user login, registration...',
+      time: '08:45 AM',
+      read: false,
+      important: false,
+      hasAttachment: false,
+      category: 'work'
+    },
+    {
+      id: 4,
+      sender: 'Emily Davis',
+      senderEmail: 'emily.davis@company.com',
+      subject: 'Meeting Reminder - Sprint Planning',
+      preview: 'Just a reminder about our sprint planning meeting tomorrow at 2 PM. Please come prepared with your task estimates...',
+      time: 'Yesterday',
+      read: true,
+      important: true,
+      hasAttachment: false,
+      category: 'meeting'
+    },
+    {
+      id: 5,
+      sender: 'Alex Thompson',
+      senderEmail: 'alex.thompson@company.com',
+      subject: 'Design Feedback Needed',
+      preview: 'I have attached the latest mockups for the user profile page. Would love to get your feedback before we proceed...',
+      time: 'Yesterday',
+      read: true,
+      important: false,
+      hasAttachment: true,
+      category: 'design'
+    }
+  ]
+
+  const filters = [
+    { id: 'all', label: 'All Mail', count: emails.length },
+    { id: 'unread', label: 'Unread', count: emails.filter(e => !e.read).length },
+    { id: 'important', label: 'Important', count: emails.filter(e => e.important).length },
+    { id: 'work', label: 'Work', count: emails.filter(e => e.category === 'work').length },
+    { id: 'archived', label: 'Archived', count: 0 }
+  ]
+
+  const filteredEmails = emails.filter(email => {
+    if (selectedFilter === 'all') return true
+    if (selectedFilter === 'unread') return !email.read
+    if (selectedFilter === 'important') return email.important
+    if (selectedFilter === 'work') return email.category === 'work'
+    return true
+  })
+
+  const toggleEmailSelection = (emailId) => {
+    setSelectedEmails(prev => 
+      prev.includes(emailId) 
+        ? prev.filter(id => id !== emailId)
+        : [...prev, emailId]
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Inbox</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage your communications and notifications</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
+              <button className="w-full bg-purple-500 hover:bg-purple-600 text-white px-4 py-3 rounded-lg font-medium mb-6 transition-colors">
+                Compose
+              </button>
+
+              {/* Filter Categories */}
+              <nav className="space-y-1">
+                {filters.map((filter) => (
+                  <button
+                    key={filter.id}
+                    onClick={() => setSelectedFilter(filter.id)}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-colors ${
+                      selectedFilter === filter.id
+                        ? 'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400'
+                        : 'text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className="font-medium">{filter.label}</span>
+                    {filter.count > 0 && (
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        selectedFilter === filter.id
+                          ? 'bg-purple-100 text-purple-600 dark:bg-purple-800 dark:text-purple-300'
+                          : 'bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300'
+                      }`}>
+                        {filter.count}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
+              {/* Toolbar */}
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    {/* Search */}
+                    <div className="relative">
+                      <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                      <input
+                        type="text"
+                        placeholder="Search emails..."
+                        className="pl-10 pr-4 py-2 w-64 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                      <Filter className="w-4 h-4 text-gray-500" />
+                    </button>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center space-x-2">
+                    <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                      <Archive className="w-4 h-4 text-gray-500" />
+                    </button>
+                    <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                      <Trash2 className="w-4 h-4 text-gray-500" />
+                    </button>
+                    <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                      <MoreVertical className="w-4 h-4 text-gray-500" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Email List */}
+              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                {filteredEmails.map((email) => (
+                  <div
+                    key={email.id}
+                    className={`px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer ${
+                      !email.read ? 'bg-blue-50 dark:bg-blue-900/10' : ''
+                    }`}
+                  >
+                    <div className="flex items-center space-x-4">
+                      {/* Checkbox */}
+                      <input
+                        type="checkbox"
+                        checked={selectedEmails.includes(email.id)}
+                        onChange={() => toggleEmailSelection(email.id)}
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      />
+
+                      {/* Star */}
+                      <button className="p-1">
+                        <Star className={`w-4 h-4 ${
+                          email.important 
+                            ? 'text-yellow-400 fill-current' 
+                            : 'text-gray-300 hover:text-yellow-400'
+                        }`} />
+                      </button>
+
+                      {/* Avatar */}
+                      <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                          {email.sender.split(' ').map(n => n[0]).join('')}
+                        </span>
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <span className={`font-medium truncate ${
+                              !email.read ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'
+                            }`}>
+                              {email.sender}
+                            </span>
+                            
+                            {email.hasAttachment && (
+                              <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center space-x-3">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                              {email.time}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className={`mt-1 font-medium truncate ${
+                          !email.read ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'
+                        }`}>
+                          {email.subject}
+                        </div>
+                        
+                        <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 truncate">
+                          {email.preview}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Empty State */}
+              {filteredEmails.length === 0 && (
+                <div className="px-6 py-12 text-center">
+                  <Mail className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No emails found</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Try adjusting your filters or search terms</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default InboxPage

@@ -1,0 +1,246 @@
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+
+// Protect routes - check if user is authenticated
+const protect = async (req, res, next) => {
+  let token;
+
+  // Check for token in headers
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+  // Check for token in cookies
+  else if (req.cookies.token) {
+    token = req.cookies.token;
+  }
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: 'Not authorized, no token provided'
+    });
+  }
+
+  try {
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Get user from token
+    const user = await User.findById(decoded.id)
+      .select('-password')
+      .populate('workspaces.workspace', 'name slug subscription');
+    
+    if (!user || !user.isActive) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found or inactive'
+      });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error('Auth middleware error:', error);
+    return res.status(401).json({
+      success: false,
+      message: 'Not authorized, invalid token'
+    });
+  }
+};
+
+// Check workspace access
+const workspaceAccess = (requiredRole = 'member') => {
+  return (req, res, next) => {
+    const workspaceId = req.params.workspaceId || req.body.workspace || req.query.workspace;
+    
+    if (!workspaceId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Workspace ID is required'
+      });
+    }
+
+    if (!req.user.hasWorkspaceAccess(workspaceId, requiredRole)) {
+      return res.status(403).json({
+        success: false,
+        message: `Insufficient permissions. ${requiredRole} role required.`
+      });
+    }
+
+    req.workspaceId = workspaceId;
+    req.userRole = req.user.getWorkspaceRole(workspaceId);
+    next();
+  };
+};
+
+// Admin only access
+const adminOnly = (req, res, next) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'Admin access required'
+    });
+  }
+  next();
+};
+
+// Workspace owner only
+const workspaceOwnerOnly = async (req, res, next) => {
+  try {
+    const workspaceId = req.params.workspaceId || req.body.workspace;
+    const Workspace = require('../models/Workspace');
+    
+    const workspace = await Workspace.findById(workspaceId);
+    
+    if (!workspace) {
+      return res.status(404).json({
+        success: false,
+        message: 'Workspace not found'
+      });
+    }
+
+    if (workspace.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Workspace owner access required'
+      });
+    }
+
+    req.workspace = workspace;
+    next();
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Server error checking workspace ownership'
+    });
+  }
+};
+
+// Check subscription feature access
+const featureAccess = (feature) => {
+  return async (req, res, next) => {
+    try {
+      const workspaceId = req.params.workspaceId || req.body.workspace;
+      const Workspace = require('../models/Workspace');
+      
+      const workspace = await Workspace.findById(workspaceId);
+      
+      if (!workspace) {
+        return res.status(404).json({
+          success: false,
+          message: 'Workspace not found'
+        });
+      }
+
+      if (!workspace.hasFeature(feature)) {
+        return res.status(403).json({
+          success: false,
+          message: `This feature requires a Pro subscription. Current plan: ${workspace.subscription.plan}`,
+          requiredPlan: 'pro',
+          currentPlan: workspace.subscription.plan,
+          feature
+        });
+      }
+
+      next();
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: 'Server error checking feature access'
+      });
+    }
+  };
+};
+
+// Rate limiting by user
+const userRateLimit = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
+  const requests = new Map();
+
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    const userId = req.user._id.toString();
+    const now = Date.now();
+    const windowStart = now - windowMs;
+
+    // Get user's request history
+    let userRequests = requests.get(userId) || [];
+    
+    // Filter out old requests
+    userRequests = userRequests.filter(timestamp => timestamp > windowStart);
+    
+    if (userRequests.length >= maxRequests) {
+      return res.status(429).json({
+        success: false,
+        message: 'Too many requests, please try again later',
+        retryAfter: Math.ceil(windowMs / 1000)
+      });
+    }
+
+    // Add current request
+    userRequests.push(now);
+    requests.set(userId, userRequests);
+
+    next();
+  };
+};
+
+// Validate resource ownership
+const resourceOwnership = (model) => {
+  return async (req, res, next) => {
+    try {
+      const resourceId = req.params.id;
+      const Model = require(`../models/${model}`);
+      
+      const resource = await Model.findById(resourceId);
+      
+      if (!resource) {
+        return res.status(404).json({
+          success: false,
+          message: `${model} not found`
+        });
+      }
+
+      // Check ownership based on model
+      let hasAccess = false;
+      
+      if (resource.owner && resource.owner.toString() === req.user._id.toString()) {
+        hasAccess = true;
+      } else if (resource.createdBy && resource.createdBy.toString() === req.user._id.toString()) {
+        hasAccess = true;
+      } else if (resource.workspace && req.user.hasWorkspaceAccess(resource.workspace)) {
+        hasAccess = true;
+      }
+
+      if (!hasAccess) {
+        return res.status(403).json({
+          success: false,
+          message: 'Not authorized to access this resource'
+        });
+      }
+
+      req.resource = resource;
+      next();
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: 'Server error checking resource ownership'
+      });
+    }
+  };
+};
+
+module.exports = {
+  protect,
+  workspaceAccess,
+  adminOnly,
+  workspaceOwnerOnly,
+  featureAccess,
+  userRateLimit,
+  resourceOwnership
+};

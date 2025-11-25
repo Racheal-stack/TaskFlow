@@ -1,0 +1,368 @@
+import { useState } from 'react'
+import { Plus, Search, Filter, MoreVertical, Calendar, Users, Clock, CheckCircle2, AlertCircle, Target } from 'lucide-react'
+
+const ProjectsPage = () => {
+  const [selectedFilter, setSelectedFilter] = useState('all')
+  const [viewMode, setViewMode] = useState('grid') // 'grid' or 'list'
+
+  const projects = [
+    {
+      id: 1,
+      name: 'TaskFlow Dashboard Redesign',
+      description: 'Complete redesign of the TaskFlow dashboard with improved UX and modern design patterns.',
+      status: 'in-progress',
+      priority: 'high',
+      progress: 65,
+      dueDate: '2024-02-15',
+      team: [
+        { name: 'Sarah Johnson', avatar: 'SJ' },
+        { name: 'Mike Chen', avatar: 'MC' },
+        { name: 'Emily Davis', avatar: 'ED' }
+      ],
+      tasksCompleted: 8,
+      totalTasks: 12,
+      color: 'bg-purple-500'
+    },
+    {
+      id: 2,
+      name: 'Mobile App Development',
+      description: 'Native mobile applications for iOS and Android platforms with offline capabilities.',
+      status: 'planning',
+      priority: 'medium',
+      progress: 15,
+      dueDate: '2024-03-30',
+      team: [
+        { name: 'Alex Thompson', avatar: 'AT' },
+        { name: 'Lisa Wang', avatar: 'LW' }
+      ],
+      tasksCompleted: 2,
+      totalTasks: 18,
+      color: 'bg-blue-500'
+    },
+    {
+      id: 3,
+      name: 'API Integration Enhancement',
+      description: 'Improve API performance, add new endpoints, and enhance security measures.',
+      status: 'completed',
+      priority: 'high',
+      progress: 100,
+      dueDate: '2024-01-20',
+      team: [
+        { name: 'David Kim', avatar: 'DK' },
+        { name: 'Rachel Green', avatar: 'RG' }
+      ],
+      tasksCompleted: 15,
+      totalTasks: 15,
+      color: 'bg-green-500'
+    },
+    {
+      id: 4,
+      name: 'User Authentication System',
+      description: 'Implement comprehensive authentication system with SSO and 2FA capabilities.',
+      status: 'in-progress',
+      priority: 'high',
+      progress: 80,
+      dueDate: '2024-02-10',
+      team: [
+        { name: 'Tom Wilson', avatar: 'TW' },
+        { name: 'Anna Martinez', avatar: 'AM' },
+        { name: 'John Doe', avatar: 'JD' }
+      ],
+      tasksCompleted: 12,
+      totalTasks: 15,
+      color: 'bg-orange-500'
+    },
+    {
+      id: 5,
+      name: 'Documentation Website',
+      description: 'Create comprehensive documentation website for developers and end users.',
+      status: 'planning',
+      priority: 'low',
+      progress: 5,
+      dueDate: '2024-04-15',
+      team: [
+        { name: 'Sophie Turner', avatar: 'ST' }
+      ],
+      tasksCompleted: 1,
+      totalTasks: 8,
+      color: 'bg-pink-500'
+    },
+    {
+      id: 6,
+      name: 'Performance Optimization',
+      description: 'Optimize application performance, reduce load times, and improve scalability.',
+      status: 'on-hold',
+      priority: 'medium',
+      progress: 30,
+      dueDate: '2024-03-01',
+      team: [
+        { name: 'Chris Brown', avatar: 'CB' },
+        { name: 'Maya Patel', avatar: 'MP' }
+      ],
+      tasksCompleted: 4,
+      totalTasks: 10,
+      color: 'bg-cyan-500'
+    }
+  ]
+
+  const filters = [
+    { id: 'all', label: 'All Projects', count: projects.length },
+    { id: 'in-progress', label: 'In Progress', count: projects.filter(p => p.status === 'in-progress').length },
+    { id: 'planning', label: 'Planning', count: projects.filter(p => p.status === 'planning').length },
+    { id: 'completed', label: 'Completed', count: projects.filter(p => p.status === 'completed').length },
+    { id: 'on-hold', label: 'On Hold', count: projects.filter(p => p.status === 'on-hold').length }
+  ]
+
+  const filteredProjects = projects.filter(project => {
+    if (selectedFilter === 'all') return true
+    return project.status === selectedFilter
+  })
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle2 className="w-4 h-4 text-green-500" />
+      case 'in-progress':
+        return <Clock className="w-4 h-4 text-blue-500" />
+      case 'planning':
+        return <Target className="w-4 h-4 text-yellow-500" />
+      case 'on-hold':
+        return <AlertCircle className="w-4 h-4 text-red-500" />
+      default:
+        return <Clock className="w-4 h-4 text-gray-500" />
+    }
+  }
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+      case 'in-progress':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+      case 'planning':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+      case 'on-hold':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+    }
+  }
+
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'high':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+      case 'low':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+    }
+  }
+
+  const ProjectCard = ({ project }) => (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <div className={`w-3 h-3 rounded-full ${project.color}`}></div>
+          <div>
+            <h3 className="font-semibold text-gray-900 dark:text-white">{project.name}</h3>
+            <div className="flex items-center space-x-2 mt-1">
+              {getStatusIcon(project.status)}
+              <span className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${getStatusColor(project.status)}`}>
+                {project.status.replace('-', ' ')}
+              </span>
+              <span className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${getPriorityColor(project.priority)}`}>
+                {project.priority}
+              </span>
+            </div>
+          </div>
+        </div>
+        <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+          <MoreVertical className="w-4 h-4 text-gray-500" />
+        </button>
+      </div>
+
+      {/* Description */}
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+        {project.description}
+      </p>
+
+      {/* Progress */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">{project.progress}%</span>
+        </div>
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+          <div 
+            className={`h-2 rounded-full ${project.color}`}
+            style={{ width: `${project.progress}%` }}
+          ></div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
+        <div className="flex items-center space-x-1">
+          <CheckCircle2 className="w-4 h-4" />
+          <span>{project.tasksCompleted}/{project.totalTasks} tasks</span>
+        </div>
+        <div className="flex items-center space-x-1">
+          <Calendar className="w-4 h-4" />
+          <span>{new Date(project.dueDate).toLocaleDateString()}</span>
+        </div>
+      </div>
+
+      {/* Team */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Users className="w-4 h-4 text-gray-500" />
+          <div className="flex -space-x-2">
+            {project.team.slice(0, 3).map((member, index) => (
+              <div
+                key={index}
+                className="w-8 h-8 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800"
+              >
+                <span className="text-xs font-medium text-purple-600 dark:text-purple-400">
+                  {member.avatar}
+                </span>
+              </div>
+            ))}
+            {project.team.length > 3 && (
+              <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800">
+                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                  +{project.team.length - 3}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Projects</h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage and track all your team projects</p>
+          </div>
+          <button className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-colors">
+            <Plus className="w-5 h-5" />
+            <span>New Project</span>
+          </button>
+        </div>
+
+        {/* Controls */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          {/* Search and Filter */}
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search projects..."
+                className="pl-10 pr-4 py-2 w-64 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+              <Filter className="w-4 h-4 text-gray-500" />
+            </button>
+          </div>
+
+          {/* View Mode Toggle */}
+          <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                viewMode === 'grid'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              Grid
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              List
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          {/* Sidebar Filters */}
+          <div className="lg:col-span-1">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Filter by Status</h3>
+              <nav className="space-y-1">
+                {filters.map((filter) => (
+                  <button
+                    key={filter.id}
+                    onClick={() => setSelectedFilter(filter.id)}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 text-left rounded-lg transition-colors ${
+                      selectedFilter === filter.id
+                        ? 'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400'
+                        : 'text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className="font-medium capitalize">{filter.label}</span>
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      selectedFilter === filter.id
+                        ? 'bg-purple-100 text-purple-600 dark:bg-purple-800 dark:text-purple-300'
+                        : 'bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300'
+                    }`}>
+                      {filter.count}
+                    </span>
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </div>
+
+          {/* Projects Grid */}
+          <div className="lg:col-span-4">
+            {filteredProjects.length > 0 ? (
+              <div className={
+                viewMode === 'grid' 
+                  ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+                  : "space-y-4"
+              }>
+                {filteredProjects.map((project) => (
+                  <ProjectCard key={project.id} project={project} />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center shadow-sm">
+                <Target className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No projects found</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  {selectedFilter === 'all' 
+                    ? "Create your first project to get started"
+                    : `No projects with status "${selectedFilter.replace('-', ' ')}"`
+                  }
+                </p>
+                <button className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                  Create New Project
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default ProjectsPage
