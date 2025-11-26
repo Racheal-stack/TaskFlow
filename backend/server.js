@@ -20,6 +20,7 @@ const meetingRoutes = require('./src/routes/meetings');
 const spaceRoutes = require('./src/routes/spaces');
 const folderRoutes = require('./src/routes/folders');
 const listRoutes = require('./src/routes/lists');
+const workspaceInvitationRoutes = require('./src/routes/workspaceInvitations');
 const errorHandler = require('./src/middleware/errorHandler');
 const socketHandler = require('./src/utils/socketHandler');
 const app = express();
@@ -64,6 +65,7 @@ app.use('/api/meetings', meetingRoutes);
 app.use('/api/spaces', spaceRoutes);
 app.use('/api/folders', folderRoutes);
 app.use('/api/lists', listRoutes);
+app.use('/api/workspace-invitations', workspaceInvitationRoutes);
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'OK',

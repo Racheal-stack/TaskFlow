@@ -54,6 +54,7 @@ export const authAPI = {
   forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
   resetPassword: (token, password) => api.post(`/auth/reset-password/${token}`, { password }),
   switchWorkspace: (workspaceId) => api.post('/auth/switch-workspace', workspaceId),
+  createWorkspace: (workspaceData) => api.post('/workspaces', workspaceData),
 }
 export const workspaceAPI = {
   getAll: () => api.get('/workspaces'),
@@ -198,6 +199,31 @@ export const notificationAPI = {
   getPreferences: () => api.get('/notifications/preferences'),
   updatePreferences: (preferences) => api.put('/notifications/preferences', preferences),
 }
+
+// Workspace Invitations API
+export const workspaceInvitationAPI = {
+  // Send invitation to join workspace
+  sendInvitation: (data) => api.post('/workspace-invitations', data),
+  
+  // Get current user's pending invitations
+  getMyInvitations: () => api.get('/workspace-invitations/my-invitations'),
+  
+  // Get all invitations for a workspace (admin only)
+  getWorkspaceInvitations: (workspaceId) => api.get(`/workspace-invitations/workspace/${workspaceId}`),
+  
+  // Get invitation details by token (public)
+  getInvitationByToken: (token) => api.get(`/workspace-invitations/${token}`),
+  
+  // Accept invitation
+  acceptInvitation: (token) => api.post(`/workspace-invitations/${token}/accept`),
+  
+  // Decline invitation
+  declineInvitation: (token) => api.post(`/workspace-invitations/${token}/decline`),
+  
+  // Cancel invitation (admin only)
+  cancelInvitation: (invitationId) => api.delete(`/workspace-invitations/${invitationId}`)
+};
+
 export const uploadFile = async (file, onProgress) => {
   const formData = new FormData()
   formData.append('file', file)
