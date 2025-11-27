@@ -5,6 +5,12 @@ const Space = require('../models/Space');
 const Folder = require('../models/Folder');
 const { protect } = require('../middleware/auth');
 
+// Helper function to check if user is owner or admin of workspace
+const isOwnerOrAdmin = (user, workspaceId) => {
+  const role = user.getWorkspaceRole(workspaceId);
+  return role === 'owner' || role === 'admin';
+};
+
 // @desc    Get all lists
 // @route   GET /api/lists
 // @access  Private
@@ -376,6 +382,217 @@ router.put('/reorder', protect, async (req, res) => {
     res.json({ success: true, message: 'Lists reordered successfully' });
   } catch (error) {
     console.error('Reorder lists error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @desc    Add custom status to list
+// @route   POST /api/lists/:id/statuses
+// @access  Private
+router.post('/:id/statuses', protect, async (req, res) => {
+  try {
+    const { name, color, type } = req.body;
+    const list = await List.findById(req.params.id);
+
+    if (!list) {
+      return res.status(404).json({ message: 'List not found' });
+    }
+
+    const hasAccess = req.user.hasWorkspaceAccess(list.workspace, 'member');
+    if (!hasAccess) {
+      return res.status(403).json({ message: 'Not authorized to modify this list' });
+    }
+
+    // Check if user has permission to create statuses
+    // Owner and Admin always have permission
+    const hasPermission = isOwnerOrAdmin(req.user, list.workspace) || list.canUserCreateStatuses(req.user._id);
+    if (!hasPermission) {
+      return res.status(403).json({ message: 'You do not have permission to create statuses' });
+    }
+
+    if (!name) {
+      return res.status(400).json({ message: 'Status name is required' });
+    }
+
+    // Check if status name already exists
+    if (list.statuses.find(s => s.name.toLowerCase() === name.toLowerCase())) {
+      return res.status(400).json({ message: 'Status with this name already exists' });
+    }
+
+    await list.addStatus(name, color, type || 'custom');
+
+    res.json({ success: true, message: 'Status added successfully', data: list });
+  } catch (error) {
+    console.error('Add status error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @desc    Update custom status
+// @route   PUT /api/lists/:id/statuses/:statusId
+// @access  Private
+router.put('/:id/statuses/:statusId', protect, async (req, res) => {
+  try {
+    const { name, color } = req.body;
+    const list = await List.findById(req.params.id);
+
+    if (!list) {
+      return res.status(404).json({ message: 'List not found' });
+    }
+
+    const hasAccess = req.user.hasWorkspaceAccess(list.workspace, 'member');
+    if (!hasAccess) {
+      return res.status(403).json({ message: 'Not authorized to modify this list' });
+    }
+
+    // Check if user has permission to edit statuses
+    // Owner and Admin always have permission
+    const hasPermission = isOwnerOrAdmin(req.user, list.workspace) || list.canUserEditStatuses(req.user._id);
+    if (!hasPermission) {
+      return res.status(403).json({ message: 'You do not have permission to edit statuses' });
+    }
+
+    const status = list.statuses.id(req.params.statusId);
+    if (!status) {
+      return res.status(404).json({ message: 'Status not found' });
+    }
+
+    if (name) status.name = name;
+    if (color) status.color = color;
+
+    await list.save();
+
+    res.json({ success: true, message: 'Status updated successfully', data: list });
+  } catch (error) {
+    console.error('Update status error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @desc    Delete custom status
+// @route   DELETE /api/lists/:id/statuses/:statusId
+// @access  Private
+router.delete('/:id/statuses/:statusId', protect, async (req, res) => {
+  try {
+    const list = await List.findById(req.params.id);
+
+    if (!list) {
+      return res.status(404).json({ message: 'List not found' });
+    }
+
+    const hasAccess = req.user.hasWorkspaceAccess(list.workspace, 'member');
+    if (!hasAccess) {
+      return res.status(403).json({ message: 'Not authorized to modify this list' });
+    }
+
+    // Check if user has permission to delete statuses
+    // Owner and Admin always have permission
+    const hasPermission = isOwnerOrAdmin(req.user, list.workspace) || list.canUserDeleteStatuses(req.user._id);
+    if (!hasPermission) {
+      return res.status(403).json({ message: 'You do not have permission to delete statuses' });
+    }
+
+    const status = list.statuses.id(req.params.statusId);
+    if (!status) {
+      return res.status(404).json({ message: 'Status not found' });
+    }
+
+    // Prevent deleting if it's the last status
+    if (list.statuses.length <= 1) {
+      return res.status(400).json({ message: 'Cannot delete the last status' });
+    }
+
+    status.remove();
+    await list.save();
+
+    res.json({ success: true, message: 'Status deleted successfully', data: list });
+  } catch (error) {
+    console.error('Delete status error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @desc    Update list permissions
+// @route   PUT /api/lists/:id/permissions
+// @access  Private
+router.put('/:id/permissions', protect, async (req, res) => {
+  try {
+    const list = await List.findById(req.params.id);
+
+    if (!list) {
+      return res.status(404).json({ message: 'List not found' });
+    }
+
+    const hasAccess = req.user.hasWorkspaceAccess(list.workspace, 'member');
+    if (!hasAccess) {
+      return res.status(403).json({ message: 'Not authorized to modify this list' });
+    }
+
+    // Check if user has permission to manage permissions
+    if (!list.canUserManagePermissions(req.user._id)) {
+      return res.status(403).json({ message: 'You do not have permission to manage permissions' });
+    }
+
+    const {
+      canCreateStatuses,
+      canEditStatuses,
+      canDeleteStatuses,
+      canViewTasks,
+      canCreateTasks,
+      canEditTasks,
+      canDeleteTasks,
+      canManagePermissions
+    } = req.body;
+
+    if (!list.permissions) {
+      list.permissions = {};
+    }
+
+    if (canCreateStatuses !== undefined) list.permissions.canCreateStatuses = canCreateStatuses;
+    if (canEditStatuses !== undefined) list.permissions.canEditStatuses = canEditStatuses;
+    if (canDeleteStatuses !== undefined) list.permissions.canDeleteStatuses = canDeleteStatuses;
+    if (canViewTasks !== undefined) list.permissions.canViewTasks = canViewTasks;
+    if (canCreateTasks !== undefined) list.permissions.canCreateTasks = canCreateTasks;
+    if (canEditTasks !== undefined) list.permissions.canEditTasks = canEditTasks;
+    if (canDeleteTasks !== undefined) list.permissions.canDeleteTasks = canDeleteTasks;
+    if (canManagePermissions !== undefined) list.permissions.canManagePermissions = canManagePermissions;
+
+    await list.save();
+
+    res.json({ success: true, message: 'Permissions updated successfully', data: list });
+  } catch (error) {
+    console.error('Update permissions error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @desc    Get list permissions with user details
+// @route   GET /api/lists/:id/permissions
+// @access  Private
+router.get('/:id/permissions', protect, async (req, res) => {
+  try {
+    const list = await List.findById(req.params.id)
+      .populate('permissions.canCreateStatuses', 'name email')
+      .populate('permissions.canEditStatuses', 'name email')
+      .populate('permissions.canDeleteStatuses', 'name email')
+      .populate('permissions.canViewTasks', 'name email')
+      .populate('permissions.canCreateTasks', 'name email')
+      .populate('permissions.canEditTasks', 'name email')
+      .populate('permissions.canDeleteTasks', 'name email')
+      .populate('permissions.canManagePermissions', 'name email');
+
+    if (!list) {
+      return res.status(404).json({ message: 'List not found' });
+    }
+
+    const hasAccess = req.user.hasWorkspaceAccess(list.workspace, 'member');
+    if (!hasAccess) {
+      return res.status(403).json({ message: 'Not authorized to view this list' });
+    }
+
+    res.json({ success: true, data: list.permissions || {} });
+  } catch (error) {
+    console.error('Get permissions error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

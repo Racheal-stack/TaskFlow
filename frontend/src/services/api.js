@@ -118,10 +118,14 @@ export const listAPI = {
   delete: (id) => api.delete(`/lists/${id}`),
   restore: (id) => api.post(`/lists/${id}/restore`),
   addStatus: (id, statusData) => api.post(`/lists/${id}/statuses`, statusData),
+  updateStatus: (id, statusId, statusData) => api.put(`/lists/${id}/statuses/${statusId}`, statusData),
+  deleteStatus: (id, statusId) => api.delete(`/lists/${id}/statuses/${statusId}`),
   removeStatus: (id, statusName) => api.delete(`/lists/${id}/statuses/${encodeURIComponent(statusName)}`),
   addCustomField: (id, fieldData) => api.post(`/lists/${id}/custom-fields`, fieldData),
   removeCustomField: (id, fieldName) => api.delete(`/lists/${id}/custom-fields/${encodeURIComponent(fieldName)}`),
   reorder: (listIds) => api.put('/lists/reorder', { listIds }),
+  getPermissions: (id) => api.get(`/lists/${id}/permissions`),
+  updatePermissions: (id, permissionsData) => api.put(`/lists/${id}/permissions`, permissionsData),
 }
 
 export const taskAPI = {

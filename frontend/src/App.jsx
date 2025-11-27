@@ -12,6 +12,7 @@ import RegisterPage from './pages/auth/RegisterPage'
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import InvitationPage from './pages/InvitationPage'
+import InboxPage from './pages/InboxPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import ProjectsPage from './pages/projects/ProjectsPage'
 import ProjectDetailPage from './pages/projects/ProjectDetailPage'
@@ -74,6 +75,13 @@ function App() {
           <ProtectedRoute>
             <SocketProvider>
               <DashboardPage />
+            </SocketProvider>
+          </ProtectedRoute>
+        } />
+        <Route path="/inbox" element={
+          <ProtectedRoute>
+            <SocketProvider>
+              <InboxPage />
             </SocketProvider>
           </ProtectedRoute>
         } />

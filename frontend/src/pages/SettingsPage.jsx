@@ -5,6 +5,8 @@ import { useWorkspace } from '../context/WorkspaceContext'
 import { workspaceInvitationAPI } from '../services/api'
 import toast from 'react-hot-toast'
 import InviteMemberModal from '../components/workspace/InviteMemberModal'
+import DashboardLayout from '../components/layout/DashboardLayout'
+
 const SettingsPage = () => {
   const { user } = useAuth()
   const { currentWorkspace } = useWorkspace()
@@ -35,16 +37,27 @@ const SettingsPage = () => {
   const loadWorkspaceData = async () => {
     try {
       setLoading(true)
+      
+      // Get current workspace ID - could be an object or string
+      const workspaceId = currentWorkspace?._id || currentWorkspace?.id || currentWorkspace
+      
+      console.log('Loading workspace data for:', workspaceId)
+      console.log('User workspaces:', user?.workspaces)
+      
       // Get pending invitations for this workspace
-      if (currentWorkspace?._id) {
-        const invitationsRes = await workspaceInvitationAPI.getByWorkspace(currentWorkspace._id)
+      if (workspaceId) {
+        const invitationsRes = await workspaceInvitationAPI.getByWorkspace(workspaceId)
         setPendingInvitations(invitationsRes.data || [])
       }
       
       // Get workspace members from user data
-      const userWorkspace = user?.workspaces?.find(
-        w => (w.workspace?._id || w.workspace?.id || w.workspace) === currentWorkspace?._id
-      )
+      const userWorkspace = user?.workspaces?.find(w => {
+        const wsId = w.workspace?._id || w.workspace?.id || w.workspace
+        return wsId === workspaceId
+      })
+      
+      console.log('Found user workspace:', userWorkspace)
+      console.log('User role:', userWorkspace?.role)
       
       if (userWorkspace) {
         // For now, show just the current user as we don't have full member list
@@ -324,7 +337,16 @@ const SettingsPage = () => {
             <div>
               <p className="font-medium text-gray-900 dark:text-white">{currentWorkspace?.name || 'Loading...'}</p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {workspaceMembers.length} member{workspaceMembers.length !== 1 ? 's' : ''} · {user?.workspaces?.find(w => w.workspace._id === currentWorkspace?._id)?.role || 'Member'}
+                {workspaceMembers.length} member{workspaceMembers.length !== 1 ? 's' : ''} · Your role: {(() => {
+                  const workspaceId = currentWorkspace?._id || currentWorkspace?.id || currentWorkspace
+                  const userWorkspace = user?.workspaces?.find(w => {
+                    const wsId = w.workspace?._id || w.workspace?.id || w.workspace
+                    return wsId === workspaceId
+                  })
+                  const role = userWorkspace?.role || 'member'
+                  console.log('Display role check:', { workspaceId, userWorkspace, role })
+                  return role.charAt(0).toUpperCase() + role.slice(1)
+                })()}
               </p>
             </div>
             <button 
@@ -375,7 +397,7 @@ const SettingsPage = () => {
                         ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
                         : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
                     }`}>
-                      {member.role}
+                      {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
                     </span>
                   </div>
                 </div>
@@ -618,17 +640,20 @@ const SettingsPage = () => {
         return renderProfileSection()
     }
   }
+  
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
-      <div className="max-w-6xl mx-auto">
-        {}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Settings</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage your account preferences and workspace settings</p>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {}
-          <div className="lg:col-span-1">
+    <DashboardLayout>
+      <div className="p-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Settings</h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage your account preferences and workspace settings</p>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Sidebar */}
+            <div className="lg:col-span-1">
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
               <nav className="space-y-1">
                 {settingsSections.filter(section => !section.adminOnly || user?.role === 'admin').map((section) => (
@@ -679,7 +704,7 @@ const SettingsPage = () => {
           }}
         />
       )}
-    </div>
+    </DashboardLayout>
   )
 }
 export default SettingsPage

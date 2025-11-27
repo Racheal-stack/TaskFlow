@@ -11,7 +11,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
-  Search
+  Search,
+  CheckSquare
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -57,6 +58,7 @@ function Sidebar({ onListClick, onAddFolder, onAddList }) {
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { icon: Inbox, label: 'Inbox', path: '/inbox' },
+    { icon: CheckSquare, label: 'Tasks', path: '/tasks' },
     { icon: Calendar, label: 'Calendar', path: '/calendar' },
     { icon: Settings, label: 'Settings', path: '/settings' }
   ];

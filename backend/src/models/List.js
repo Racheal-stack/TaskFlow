@@ -141,6 +141,40 @@ const listSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  permissions: {
+    canCreateStatuses: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    canEditStatuses: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    canDeleteStatuses: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    canViewTasks: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    canCreateTasks: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    canEditTasks: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    canDeleteTasks: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    canManagePermissions: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }]
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -250,6 +284,62 @@ listSchema.methods.restore = function() {
   this.isArchived = false;
   this.archivedAt = null;
   return this.save();
+};
+
+// Permission check methods
+listSchema.methods.canUserCreateStatuses = function(userId) {
+  if (!userId) return false;
+  // Creator always has permission
+  if (this.createdBy.toString() === userId.toString()) return true;
+  // Check if user is in the permission list
+  return this.permissions?.canCreateStatuses?.some(id => id.toString() === userId.toString()) || false;
+};
+
+listSchema.methods.canUserEditStatuses = function(userId) {
+  if (!userId) return false;
+  if (this.createdBy.toString() === userId.toString()) return true;
+  return this.permissions?.canEditStatuses?.some(id => id.toString() === userId.toString()) || false;
+};
+
+listSchema.methods.canUserDeleteStatuses = function(userId) {
+  if (!userId) return false;
+  if (this.createdBy.toString() === userId.toString()) return true;
+  return this.permissions?.canDeleteStatuses?.some(id => id.toString() === userId.toString()) || false;
+};
+
+listSchema.methods.canUserViewTasks = function(userId) {
+  if (!userId) return false;
+  if (this.createdBy.toString() === userId.toString()) return true;
+  // If no specific permissions set, allow all workspace members
+  if (!this.permissions?.canViewTasks || this.permissions.canViewTasks.length === 0) return true;
+  return this.permissions.canViewTasks.some(id => id.toString() === userId.toString());
+};
+
+listSchema.methods.canUserCreateTasks = function(userId) {
+  if (!userId) return false;
+  if (this.createdBy.toString() === userId.toString()) return true;
+  if (!this.permissions?.canCreateTasks || this.permissions.canCreateTasks.length === 0) return true;
+  return this.permissions.canCreateTasks.some(id => id.toString() === userId.toString());
+};
+
+listSchema.methods.canUserEditTasks = function(userId) {
+  if (!userId) return false;
+  if (this.createdBy.toString() === userId.toString()) return true;
+  if (!this.permissions?.canEditTasks || this.permissions.canEditTasks.length === 0) return true;
+  return this.permissions.canEditTasks.some(id => id.toString() === userId.toString());
+};
+
+listSchema.methods.canUserDeleteTasks = function(userId) {
+  if (!userId) return false;
+  if (this.createdBy.toString() === userId.toString()) return true;
+  if (!this.permissions?.canDeleteTasks || this.permissions.canDeleteTasks.length === 0) return true;
+  return this.permissions.canDeleteTasks.some(id => id.toString() === userId.toString());
+};
+
+listSchema.methods.canUserManagePermissions = function(userId) {
+  if (!userId) return false;
+  if (this.createdBy.toString() === userId.toString()) return true;
+  return this.permissions?.canManagePermissions?.some(id => id.toString() === userId.toString()) || false;
 };
 
 // Statics
