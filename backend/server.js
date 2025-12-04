@@ -21,6 +21,7 @@ const spaceRoutes = require('./src/routes/spaces');
 const folderRoutes = require('./src/routes/folders');
 const listRoutes = require('./src/routes/lists');
 const workspaceInvitationRoutes = require('./src/routes/workspaceInvitations');
+const commentRoutes = require('./src/routes/comments');
 const errorHandler = require('./src/middleware/errorHandler');
 const socketHandler = require('./src/utils/socketHandler');
 const app = express();
@@ -54,6 +55,9 @@ app.use((req, res, next) => {
   req.io = io;
   next();
 });
+
+app.set('io', io);
+
 app.use('/api/auth', authRoutes);
 app.use('/api/workspaces', workspaceRoutes);
 app.use('/api/projects', projectRoutes);
@@ -66,8 +70,11 @@ app.use('/api/spaces', spaceRoutes);
 app.use('/api/folders', folderRoutes);
 app.use('/api/lists', listRoutes);
 app.use('/api/workspace-invitations', workspaceInvitationRoutes);
+app.use('/api/workspace-invitations', workspaceInvitationRoutes);
+app.use('/api', commentRoutes);
+
 app.get('/api/health', (req, res) => {
-  res.status(200).json({
+  res.json({
     status: 'OK',
     message: 'TaskFlow API is running',
     timestamp: new Date().toISOString(),
