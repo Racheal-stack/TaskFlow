@@ -1,0 +1,33 @@
+task_description: |
+  TaskModal.jsx is a MONSTER - like 800 lines of code. Everything is in one giant component and 
+  it's becoming impossible to maintain. Every time we add a feature it gets worse.
+  
+  Time to refactor this beast. Break it down into smaller pieces:
+  - TaskHeader (title, status, priority)
+  - TaskDescription (the description editor)
+  - TaskAssignee (assign/unassign people)
+  - TaskDates (due date, start date)
+  - TaskComments (comments section)
+  - TaskAttachments (file uploads)
+  
+  Each component should do ONE thing. Right now everything is tangled together.
+  
+  Create custom hooks - useTaskData for loading/updating task data, useTaskComments for the 
+  comments functionality. Get that logic out of the components.
+  
+  Add prop-types or TypeScript interfaces. Too many bugs from passing wrong prop types.
+  
+  Business logic should be in utility functions not in components. Makes testing way easier.
+  
+  Error boundaries - if one section breaks it shouldn't crash the whole modal.
+  
+  JSDoc comments for everything. Future developers (including future me) will thank us.
+  
+  Goal: TaskModal under 200 lines. Each piece reusable elsewhere if needed. 80%+ code coverage.
+
+author_name: Racheal
+author_email: racheal@taskflow.com
+difficulty: medium
+category: Code Restructuring
+tags: [refactoring, react, components, hooks, maintainability]
+parser_name: pytest

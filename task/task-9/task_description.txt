@@ -1,0 +1,34 @@
+task_description: |
+  Users keep missing important stuff because there's no email notifications. Someone assigns them 
+  a task and they don't know unless they log in. Need to fix this.
+  
+  Email types needed:
+  - Task assignment ("You've been assigned to X")
+  - @mentions in comments ("John mentioned you in a comment")
+  - Due date reminders (24hr before and 1hr before)
+  - Workspace invites
+  
+  Use Bull or similar for background jobs - don't want email sending to slow down the API. Queue 
+  them up and send async.
+  
+  Email templates need to look decent - HTML version for nice clients and plain text fallback. 
+  Include unsubscribe links (legally required in some places!).
+  
+  User preferences page - let people choose which emails they want. Some people want everything, 
+  some just want @mentions. Their choice.
+  
+  Scheduled reminders are tricky - need a job that checks for upcoming due dates and sends emails. 
+  Run every hour maybe?
+  
+  Unsubscribe needs to actually work - use tokens in the URL so people can't unsubscribe others. 
+  Update their preferences when they click it.
+  
+  Handle failures gracefully - retry failed emails with exponential backoff. Don't spam people if 
+  the email server is down.
+
+author_name: Racheal
+author_email: racheal@taskflow.com
+difficulty: hard
+category: Feature Implementation
+tags: [email, notifications, background-jobs, bull, nodemailer, scheduling]
+parser_name: pytest

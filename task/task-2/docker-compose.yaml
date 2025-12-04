@@ -1,0 +1,68 @@
+version: "3.9"
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: taskflow-test-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: taskflow_test
+    volumes:
+      - mongodb_test_data:/data/db
+    networks:
+      - taskflow-test-network
+
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    container_name: taskflow-test-backend
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      NODE_ENV: test
+      PORT: 5001
+      MONGODB_URI: mongodb://admin:password123@mongodb:27017/taskflow_test?authSource=admin
+      JWT_SECRET: test-jwt-secret-key-for-task-1
+      JWT_EXPIRE: 7d
+      FRONTEND_URL: http://localhost:3000
+    depends_on:
+      - mongodb
+    volumes:
+      - ../../backend:/app
+      - /app/node_modules
+    networks:
+      - taskflow-test-network
+    command: npm run dev
+
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+    container_name: taskflow-test-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: http://localhost:5001/api
+      VITE_SOCKET_URL: http://localhost:5001
+    depends_on:
+      - backend
+    volumes:
+      - ../../frontend:/app
+      - /app/node_modules
+    networks:
+      - taskflow-test-network
+    command: npm run dev
+
+networks:
+  taskflow-test-network:
+    driver: bridge
+
+volumes:
+  mongodb_test_data:

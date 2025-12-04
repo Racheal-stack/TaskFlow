@@ -1,0 +1,29 @@
+task_description: |
+  Found a nasty race condition bug. When two people edit the same task at the same time, one 
+  person's changes just disappear. Super frustrating and causes actual data loss.
+  
+  What's happening: User A changes task status to "In Progress". At the same time User B changes 
+  the description. User B's save overwrites User A's status change. User A's work is just gone.
+  
+  Need optimistic locking - add a version number to tasks. Increment it every time task is updated. 
+  When someone tries to save, check if the version matches. If not = conflict!
+  
+  Conflict detection should catch these cases and show a UI letting the user know someone else 
+  changed the task. Show them both versions - what they have vs what's in the database. Let them 
+  choose how to merge or which one to keep.
+  
+  WebSocket broadcast is important - when someone updates a task, everyone else viewing it should 
+  see the update immediately. No more stale data.
+  
+  Last-write-wins with notification as fallback - if we can't resolve automatically, notify the 
+  user and let them decide.
+  
+  Should handle even extreme cases like 10 people editing same task simultaneously (unlikely but 
+  possible in big teams).
+
+author_name: Racheal
+author_email: racheal@taskflow.com
+difficulty: hard
+category: Bug Resolution
+tags: [concurrency, race-condition, websockets, conflict-resolution, mongodb]
+parser_name: pytest

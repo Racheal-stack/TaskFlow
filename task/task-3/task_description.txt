@@ -1,0 +1,27 @@
+task_description: |
+  OK so there's this nasty bug with task dependencies. People can create circular dependencies 
+  (Task A depends on Task B which depends on Task A) and the whole system gets confused. Also 
+  tasks are being marked complete even when their dependencies aren't done yet which defeats the 
+  whole purpose of dependencies!
+  
+  Need to fix this:
+  - Add cycle detection when creating dependencies (graph algorithm stuff)
+  - Stop tasks from being completed if they have unfinished dependencies 
+  - Show the dependency chain visually in TaskModal so users can see what depends on what
+  - Backend validation - don't even let circular dependencies get created in the first place
+  - Maybe a nice graph view showing the whole dependency tree?
+  - API endpoint that returns all the tasks that depend on a task and all the tasks it depends on
+  
+  Edge cases to handle: what happens if someone deletes a task that other tasks depend on? Don't 
+  want orphaned tasks floating around. And this needs to work fast even with complex chains - 
+  some projects might have 100+ interconnected tasks.
+  
+  The dependency chain validation should happen on both frontend AND backend - double check 
+  everything cause this is critical functionality.
+
+author_name: Racheal
+author_email: racheal@taskflow.com
+difficulty: hard
+category: Bug Resolution
+tags: [graph-algorithms, validation, mongodb, react, dependencies]
+parser_name: pytest

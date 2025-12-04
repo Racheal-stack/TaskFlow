@@ -1,0 +1,25 @@
+task_description: |
+  So basically we need real-time notifications when someone comments on a task. Right now users have 
+  no idea when someone else adds a comment unless they refresh the page which is pretty annoying.
+  
+  What needs to happen:
+  - Build a NotificationBadge component (you know, the little number bubble thing)
+  - Fix up the socketHandler on the backend so it actually sends out notifications when comments happen
+  - TaskModal needs to show these notifications somehow
+  - We'll need some kind of context or state thing on the frontend to manage all this
+  - Oh and add an API endpoint so users can see their notification history
+  - Database schema for notifications - sender, receiver, which task, whether they read it, etc
+  
+  It should work like this:
+  User A drops a comment on a task. User B is looking at that same task and BOOM - notification 
+  pops up right away. No refresh needed. The badge should show how many unread ones they have.
+  When they refresh the page the notifications should still be there (dont lose them!). And yeah,
+  make sure the socket stuff is secure with proper auth - we dont want random people getting notifications
+  they shouldnt see. The API should support pagination cause some users might have tons of notifications.
+
+author_name: Racheal
+author_email: rachealjoseph902@gmail.com
+difficulty: hard
+category: Feature Implementation
+tags: [websockets, react, nodejs, mongodb, real-time]
+parser_name: pytest

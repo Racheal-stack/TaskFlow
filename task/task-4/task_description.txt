@@ -1,0 +1,29 @@
+task_description: |
+  The auth system is kinda a mess right now. Everyone basically has the same permissions which is 
+  not great for bigger teams. Need to refactor this to have proper RBAC.
+  
+  Role levels: Owner (can do anything), Admin (most things), Member (basic stuff), Viewer (read-only)
+  
+  Permissions should cascade - if you're an Owner at the workspace level, you should have owner 
+  permissions on all projects and tasks under it. But you could also have like workspace Member 
+  but be project Admin on specific projects.
+  
+  Middleware needs to check permissions at each level - workspace, project, task. Return 403 when 
+  someone tries something they can't do. 
+  
+  Frontend should hide buttons and menus that users don't have permission for - don't show a Delete 
+  button if they can't delete. Makes for better UX.
+  
+  Need API endpoints to manage roles - add/remove people from roles, change permissions, etc.
+  
+  Oh and keep an audit log of who changed what permissions when. Important for security.
+  
+  Migration is gonna be tricky - existing users need to be assigned roles. Probably make workspace 
+  creators into Owners and everyone else Members by default?
+
+author_name: Racheal
+author_email: racheal@taskflow.com
+difficulty: medium
+category: Code Restructuring
+tags: [rbac, authorization, security, middleware, refactoring]
+parser_name: pytest

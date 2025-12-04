@@ -1,6 +1,16 @@
 # TaskFlow
 
-A modern project and task management application built with React and Node.js.
+A comprehensive full-stack project and task management application built with the MERN stack (MongoDB, Express.js, React, Node.js).
+
+## Overview
+
+TaskFlow is a feature-rich project management platform designed for teams to collaborate effectively. It combines real-time updates, intuitive task management, and powerful analytics to streamline project workflows. The application supports multiple workspaces, role-based permissions, real-time notifications via WebSockets, and includes comprehensive meeting management capabilities.
+
+**Repository Information:**
+- **Primary Languages:** JavaScript (React, Node.js)
+- **Repository Size:** ~10,000+ lines of code
+- **Source:** Private project (not previously publicly uploaded)
+- **Architecture:** Full-stack web application with RESTful API and WebSocket support
 
 ## Features
 

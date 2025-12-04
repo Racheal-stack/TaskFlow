@@ -1,0 +1,33 @@
+task_description: |
+  Frontend bundle is HUGE. 4.5 second load time on initial page load. That's terrible. Users are 
+  bouncing before the page even loads. Need to get this under 2 seconds.
+  
+  Bundle analysis shows we're shipping a ton of unused code. 
+  
+  Quick wins:
+  - Route-based code splitting with React.lazy - don't load Settings page code until user goes to settings
+  - Remove unused dependencies from package.json (found like 8 packages we don't even use anymore)
+  - Dynamic imports for heavy stuff - charts library is 200KB but only used on analytics page
+  - Tree-shake TailwindCSS - shipping every possible class when we use like 10%
+  
+  Add gzip/brotli compression for static files. Should get another 30-40% size reduction there.
+  
+  Service worker for caching - returning users should load instantly from cache.
+  
+  Target metrics:
+  - 40% bundle size reduction minimum
+  - FCP under 1.5s
+  - TTI under 2s  
+  - Lighthouse score 90+
+  
+  Each route should be its own chunk - dashboard, tasks, projects, settings, etc. Load what you 
+  need when you need it.
+  
+  TailwindCSS purge config needs to actually work - check all the paths are right.
+
+author_name: Racheal
+author_email: racheal@taskflow.com
+difficulty: medium
+category: Performance Optimization
+tags: [optimization, code-splitting, webpack, vite, bundle-size, performance]
+parser_name: pytest

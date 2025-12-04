@@ -1,0 +1,27 @@
+task_description: |
+  Users keep complaining they cant find tasks easily, especially in big workspaces. We need proper 
+  search with filters - not the basic ctrl+f stuff but actual good search.
+  
+  Here's what I'm thinking:
+  Build a SearchBar with autocomplete (like Google search suggestions). Backend needs to do fuzzy 
+  matching - if someone types "tak" it should still find "task" you know? MongoDB has text indexes 
+  for this so use those.
+  
+  Filter panel should let people combine filters - like show me high priority tasks assigned to John 
+  that are overdue. Status, priority, assignee, date ranges - all of it.
+  
+  URL params thing is important - if someone does a complex search they should be able to share that 
+  link with teammates. Also highlight the matched text in results so people can see why it matched.
+  
+  Store recent searches in localStorage so they can quickly redo common searches.
+  
+  Performance matters here - some workspaces have 1000+ tasks so it needs to be fast. Debounce the 
+  search input so we're not hitting the server on every keystroke. And make sure multiple filters 
+  work together properly (AND logic not OR).
+
+author_name: Racheal
+author_email: racheal@taskflow.com
+difficulty: hard
+category: Feature Implementation
+tags: [search, mongodb, react, performance, indexing]
+parser_name: pytest

@@ -1,0 +1,30 @@
+task_description: |
+  People want to attach files to tasks - screenshots, documents, PDFs, whatever. Right now they 
+  have to use external links which is annoying.
+  
+  Build a file upload component. Drag and drop would be nice - just drag files onto the task and 
+  they upload. Multi-file upload so you can drop several at once.
+  
+  Backend needs multer for handling uploads. Do validation:
+  - File type check (accept images, PDFs, docs - reject executables and weird stuff)
+  - Size limit 10MB per file (don't let people upload huge videos)
+  
+  For images generate thumbnails so we can show previews without loading the full file.
+  
+  Storage - use S3 or similar cloud storage. Don't store files in the database that's terrible 
+  for performance. Use signed URLs for security.
+  
+  When someone deletes a file make sure it deletes from BOTH the database AND S3. Don't want 
+  orphaned files eating up storage costs.
+  
+  Show upload progress bar so users know it's working.
+  
+  Types to support: jpg, png, gif, pdf, doc, docx, txt, csv, xlsx
+  Block: exe, sh, bat, anything executable
+
+author_name: Racheal
+author_email: racheal@taskflow.com
+difficulty: medium
+category: Feature Implementation
+tags: [file-upload, cloud-storage, multer, s3, react, validation]
+parser_name: pytest
