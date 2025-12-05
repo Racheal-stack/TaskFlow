@@ -16,10 +16,12 @@ TaskFlow is a feature-rich project management platform designed for teams to col
 
 - **Project Management** - Create and organize projects
 - **Task Tracking** - Kanban board with drag-and-drop functionality
+- **Real-time Notifications** - Instant notifications for comments, mentions, and updates via WebSockets
 - **Team Collaboration** - Real-time updates and workspace management
 - **User Authentication** - Secure login with email verification
 - **Analytics Dashboard** - Track progress and productivity metrics
 - **Meeting Management** - Schedule and manage team meetings
+- **Comment System** - Collaborative commenting with @mentions
 - **Dark/Light Mode** - Customizable UI themes
 
 ## Tech Stack

@@ -128,10 +128,10 @@ exports.getNotifications = async (req, res) => {
 
 exports.markAsRead = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { notificationId } = req.params;
 
     const notification = await Notification.findOneAndUpdate(
-      { _id: id, user: req.user._id },
+      { _id: notificationId, user: req.user._id },
       { read: true, readAt: new Date() },
       { new: true }
     );
