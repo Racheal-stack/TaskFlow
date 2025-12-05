@@ -156,9 +156,18 @@ router.delete('/:taskId/dependencies/:depId', protect, async (req, res) => {
 router.patch('/:taskId', protect, async (req, res) => {
   try {
     const { taskId } = req.params;
-    const updates = req.body;
+    const { version, ...updates } = req.body;
     
     const task = await Task.findById(taskId).populate('dependencies.task', 'status');
+    
+    if (version !== undefined && task.version !== version) {
+      return res.status(409).json({ 
+        message: 'Conflict detected',
+        currentData: task,
+        yourVersion: version,
+        currentVersion: task.version
+      });
+    }
     
     if (updates.status === 'completed' || updates.status === 'done') {
       const incompleteDeps = task.dependencies.filter(d => 
@@ -173,7 +182,18 @@ router.patch('/:taskId', protect, async (req, res) => {
     }
     
     Object.assign(task, updates);
+    task.version += 1;
     await task.save();
+    
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`task_${taskId}`).emit('task_updated', {
+        taskId,
+        updates,
+        version: task.version,
+        updatedBy: req.user._id
+      });
+    }
     
     res.json(task);
   } catch (error) {
