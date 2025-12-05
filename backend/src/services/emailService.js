@@ -1,11 +1,86 @@
 const nodemailer = require('nodemailer');
+const Queue = require('bull');
 const fs = require('fs').promises;
 const path = require('path');
+
+const emailQueue = new Queue('email', process.env.REDIS_URL || 'redis://127.0.0.1:6379');
+
 class EmailService {
   constructor() {
     this.transporter = null;
     this.initializeTransporter();
+    this.setupQueue();
   }
+
+  setupQueue() {
+    emailQueue.process(async (job) => {
+      const { to, subject, html, text } = job.data;
+      
+      const mailOptions = {
+        from: process.env.SMTP_FROM || 'noreply@taskflow.com',
+        to,
+        subject,
+        html,
+        text
+      };
+
+      try {
+        await this.transporter.sendMail(mailOptions);
+        return { sent: true };
+      } catch (error) {
+        throw error;
+      }
+    });
+  }
+
+  queueEmail(to, subject, html, text) {
+    return emailQueue.add(
+      { to, subject, html, text },
+      {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 2000
+        }
+      }
+    );
+  }
+
+  async sendTaskAssignmentEmail(user, task) {
+    const html = `
+      <h2>You've been assigned to a task</h2>
+      <p>Hi ${user.name},</p>
+      <p>You have been assigned to: <strong>${task.title}</strong></p>
+      <p>${task.description || ''}</p>
+      <a href="${process.env.FRONTEND_URL}/tasks/${task._id}">View Task</a>
+    `;
+    
+    return this.queueEmail(user.email, 'Task Assignment', html, `You've been assigned to: ${task.title}`);
+  }
+
+  async sendMentionEmail(user, comment, task) {
+    const html = `
+      <h2>You were mentioned in a comment</h2>
+      <p>Hi ${user.name},</p>
+      <p>${comment.user.name} mentioned you in "${task.title}"</p>
+      <p><em>${comment.text}</em></p>
+      <a href="${process.env.FRONTEND_URL}/tasks/${task._id}">View Task</a>
+    `;
+    
+    return this.queueEmail(user.email, 'New Mention', html, `You were mentioned in ${task.title}`);
+  }
+
+  async sendDueDateReminderEmail(user, task, hours) {
+    const html = `
+      <h2>Task Due Soon</h2>
+      <p>Hi ${user.name},</p>
+      <p>Task "${task.title}" is due in ${hours} hours.</p>
+      <a href="${process.env.FRONTEND_URL}/tasks/${task._id}">View Task</a>
+    `;
+    
+    return this.queueEmail(user.email, 'Task Due Soon', html, `Task "${task.title}" is due in ${hours} hours`);
+  }
+
   async initializeTransporter() {
     try {
       const hasEmailConfig = process.env.SMTP_HOST && process.env.SMTP_EMAIL && process.env.SMTP_PASSWORD;
