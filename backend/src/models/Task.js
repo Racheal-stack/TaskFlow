@@ -308,4 +308,11 @@ taskSchema.statics.getOverdueTasks = function(workspaceId) {
     isArchived: false
   }).populate('assignees.user project', 'name email avatar name');
 };
+
+taskSchema.index({ title: 'text', description: 'text' });
+taskSchema.index({ status: 1, priority: 1 });
+taskSchema.index({ workspace: 1, createdAt: -1 });
+taskSchema.index({ 'assignees.user': 1 });
+taskSchema.index({ dueDate: 1 });
+
 module.exports = mongoose.model('Task', taskSchema);
