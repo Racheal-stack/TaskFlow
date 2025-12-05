@@ -22,6 +22,7 @@ const folderRoutes = require('./src/routes/folders');
 const listRoutes = require('./src/routes/lists');
 const workspaceInvitationRoutes = require('./src/routes/workspaceInvitations');
 const commentRoutes = require('./src/routes/comments');
+const rolesRoutes = require('./src/routes/roles');
 const errorHandler = require('./src/middleware/errorHandler');
 const socketHandler = require('./src/utils/socketHandler');
 const app = express();
@@ -72,6 +73,7 @@ app.use('/api/lists', listRoutes);
 app.use('/api/workspace-invitations', workspaceInvitationRoutes);
 app.use('/api/workspace-invitations', workspaceInvitationRoutes);
 app.use('/api', commentRoutes);
+app.use('/api/roles', rolesRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({
