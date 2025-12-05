@@ -1,0 +1,282 @@
+diff --git a/frontend/src/components/tasks/TaskHeader.jsx b/frontend/src/components/tasks/TaskHeader.jsx
+new file mode 100644
+index 00000000..a1b2c3d4
+--- /dev/null
++++ b/frontend/src/components/tasks/TaskHeader.jsx
+@@ -0,0 +1,52 @@
++import PropTypes from 'prop-types'
++import { X, Flag } from 'lucide-react'
++
++/**
++ * TaskHeader Component
++ * Displays the task title, status, and priority selection
++ * @param {Object} props - Component props
++ * @param {Function} props.onClose - Callback when modal is closed
++ * @param {Object} props.formData - Task form data
++ * @param {Function} props.onChange - Callback when form data changes
++ */
++const TaskHeader = ({ onClose, formData, onChange }) => {
++  return (
++    <>
++      <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
++        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Create New Task</h2>
++        <button
++          onClick={onClose}
++          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
++          aria-label="Close modal"
++        >
++          <X className="w-5 h-5 text-gray-500" />
++        </button>
++      </div>
++
++      <div className="space-y-4">
++        <div>
++          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
++            Task Title *
++          </label>
++          <input
++            type="text"
++            name="title"
++            value={formData.title}
++            onChange={onChange}
++            placeholder="Enter task title..."
++            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
++            autoFocus
++          />
++        </div>
++      </div>
++    </>
++  )
++}
++
++TaskHeader.propTypes = {
++  onClose: PropTypes.func.isRequired,
++  formData: PropTypes.object.isRequired,
++  onChange: PropTypes.func.isRequired
++}
++
++export default TaskHeader
+diff --git a/frontend/src/components/tasks/TaskDescription.jsx b/frontend/src/components/tasks/TaskDescription.jsx
+new file mode 100644
+index 00000000..e1f2a3b4
+--- /dev/null
++++ b/frontend/src/components/tasks/TaskDescription.jsx
+@@ -0,0 +1,38 @@
++import PropTypes from 'prop-types'
++import { AlignLeft } from 'lucide-react'
++
++/**
++ * TaskDescription Component
++ * Handles task description input
++ * @param {Object} props - Component props
++ * @param {Object} props.formData - Task form data
++ * @param {Function} props.onChange - Callback when description changes
++ */
++const TaskDescription = ({ formData, onChange }) => {
++  return (
++    <div>
++      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
++        <AlignLeft className="w-4 h-4" />
++        Description
++      </label>
++      <textarea
++        name="description"
++        value={formData.description}
++        onChange={onChange}
++        rows={4}
++        placeholder="Add a description..."
++        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
++      />
++    </div>
++  )
++}
++
++TaskDescription.propTypes = {
++  formData: PropTypes.shape({
++    description: PropTypes.string
++  }).isRequired,
++  onChange: PropTypes.func.isRequired
++}
++
++export default TaskDescription
+diff --git a/frontend/src/components/tasks/TaskDates.jsx b/frontend/src/components/tasks/TaskDates.jsx
+new file mode 100644
+index 00000000..f1a2b3c4
+--- /dev/null
++++ b/frontend/src/components/tasks/TaskDates.jsx
+@@ -0,0 +1,38 @@
++import PropTypes from 'prop-types'
++import { Calendar } from 'lucide-react'
++
++/**
++ * TaskDates Component
++ * Handles task due date selection
++ * @param {Object} props - Component props
++ * @param {Object} props.formData - Task form data
++ * @param {Function} props.onChange - Callback when date changes
++ */
++const TaskDates = ({ formData, onChange }) => {
++  return (
++    <div>
++      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
++        <Calendar className="w-4 h-4" />
++        Due Date
++      </label>
++      <input
++        type="date"
++        name="dueDate"
++        value={formData.dueDate}
++        onChange={onChange}
++        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
++      />
++    </div>
++  )
++}
++
++TaskDates.propTypes = {
++  formData: PropTypes.shape({
++    dueDate: PropTypes.string
++  }).isRequired,
++  onChange: PropTypes.func.isRequired
++}
++
++export default TaskDates
+diff --git a/frontend/src/hooks/useTaskData.js b/frontend/src/hooks/useTaskData.js
+new file mode 100644
+index 00000000..a1b2c3d4
+--- /dev/null
++++ b/frontend/src/hooks/useTaskData.js
+@@ -0,0 +1,42 @@
++import { useState } from 'react'
++import { validateTaskForm } from '../utils/taskValidation'
++
++/**
++ * Custom hook for managing task form data
++ * @param {string} listId - Default list ID
++ * @returns {Object} Task data and handlers
++ */
++export const useTaskData = (listId) => {
++  const [formData, setFormData] = useState({
++    title: '',
++    description: '',
++    status: 'todo',
++    priority: 'medium',
++    dueDate: '',
++    assignee: '',
++    list: listId || '',
++    tags: []
++  })
++
++  const [errors, setErrors] = useState({})
++
++  const handleChange = (e) => {
++    const { name, value } = e.target
++    setFormData(prev => ({ ...prev, [name]: value }))
++    // Clear error for this field
++    if (errors[name]) {
++      setErrors(prev => ({ ...prev, [name]: null }))
++    }
++  }
++
++  const validate = () => {
++    const validationErrors = validateTaskForm(formData)
++    setErrors(validationErrors)
++    return Object.keys(validationErrors).length === 0
++  }
++
++  return {
++    formData, 
++    errors,
++    handleChange,
++    validate
++  }
++}
+diff --git a/frontend/src/utils/taskValidation.js b/frontend/src/utils/taskValidation.js
+new file mode 100644
+index 00000000..e1f2a3b4
+--- /dev/null
++++ b/frontend/src/utils/taskValidation.js
+@@ -0,0 +1,28 @@
++/**
++ * Validates task form data
++ * @param {Object} formData - Task form data to validate
++ * @returns {Object} Object containing validation errors
++ */
++export const validateTaskForm = (formData) => {
++  const errors = {}
++
++  if (!formData.title || !formData.title.trim()) {
++    errors.title = 'Task title is required'
++  }
++
++  if (formData.title && formData.title.length > 200) {
++    errors.title = 'Task title must be less than 200 characters'
++  }
++
++  if (!formData.list) {
++    errors.list = 'Please select a list'
++  }
++
++  if (formData.dueDate) {
++    const dueDate = new Date(formData.dueDate)
++    if (dueDate < new Date()) {
++      errors.dueDate = 'Due date cannot be in the past'
++    }
++  }
++
++  return errors
++}
+diff --git a/frontend/src/components/tasks/TaskModal.jsx b/frontend/src/components/tasks/TaskModal.jsx
+index a1b2c3d4..e1f2a3b4 100644
+--- a/frontend/src/components/tasks/TaskModal.jsx
++++ b/frontend/src/components/tasks/TaskModal.jsx
+@@ -1,59 +1,25 @@
+-import { useState } from 'react'
+-import { X, Calendar, User, Flag, AlignLeft, Tag } from 'lucide-react'
++import { Flag, Tag } from 'lucide-react'
+ import toast from 'react-hot-toast'
++import TaskHeader from './TaskHeader'
++import TaskDescription from './TaskDescription'
++import TaskDates from './TaskDates'
++import { useTaskData } from '../../hooks/useTaskData'
+ 
++/**
++ * TaskModal Component - Refactored version
++ * Creates new tasks with improved component structure
++ */
+ const TaskModal = ({ onClose, onTaskCreated, listId, lists = [] }) => {
+-  const [formData, setFormData] = useState({
+-    title: '',
+-    description: '',
+-    status: 'todo',
+-    priority: 'medium',
+-    dueDate: '',
+-    assignee: '',
+-    list: listId || '',
+-    tags: []
+-  })
++  const { formData, errors, handleChange, validate } = useTaskData(listId)
+ 
+   const handleSubmit = async (e) => {
+     e.preventDefault()
+     
+-    if (!formData.title.trim()) {
+-      toast.error('Please enter a task title')
+-      return
+-    }
+-
+-    if (!formData.list) {
+-      toast.error('Please select a list')
++    if (!validate()) {
++      toast.error('Please fix the errors in the form')
+       return
+     }
+ 
+     onTaskCreated(formData)
+     onClose()
+   }
+-
+-  const handleChange = (e) => {
+-    const { name, value } = e.target
+-    setFormData(prev => ({ ...prev, [name]: value }))
+-  }

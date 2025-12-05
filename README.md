@@ -4,25 +4,27 @@ A comprehensive full-stack project and task management application built with th
 
 ## Overview
 
-TaskFlow is a feature-rich project management platform designed for teams to collaborate effectively. It combines real-time updates, intuitive task management, and powerful analytics to streamline project workflows. The application supports multiple workspaces, role-based permissions, real-time notifications via WebSockets, and includes comprehensive meeting management capabilities.
+TaskFlow is a project management platform I built for teams to collaborate effectively. It combines real-time updates, task management, and analytics to streamline workflows. The application supports multiple workspaces, role-based access control, real-time notifications, file uploads, and meeting management.
 
 **Repository Information:**
 - **Primary Languages:** JavaScript (React, Node.js)
-- **Repository Size:** ~10,000+ lines of code
-- **Source:** Private project (not previously publicly uploaded)
+- **Lines of Code:** 2,200,000+
 - **Architecture:** Full-stack web application with RESTful API and WebSocket support
 
 ## Features
 
-- **Project Management** - Create and organize projects
-- **Task Tracking** - Kanban board with drag-and-drop functionality
-- **Real-time Notifications** - Instant notifications for comments, mentions, and updates via WebSockets
-- **Team Collaboration** - Real-time updates and workspace management
-- **User Authentication** - Secure login with email verification
-- **Analytics Dashboard** - Track progress and productivity metrics
-- **Meeting Management** - Schedule and manage team meetings
-- **Comment System** - Collaborative commenting with @mentions
-- **Dark/Light Mode** - Customizable UI themes
+- **Project Management** - Create and organize projects with custom statuses
+- **Task Tracking** - Kanban board with drag-and-drop
+- **Real-time Notifications** - WebSocket-based instant updates
+- **Team Collaboration** - Workspace management and real-time sync
+- **User Authentication** - JWT-based auth with email verification
+- **Analytics & Caching** - Redis-powered dashboard for performance
+- **File Uploads** - Attachment support for tasks
+- **Meeting Management** - Schedule team meetings
+- **Email Notifications** - Bull queue-based email system
+- **Advanced Search** - Full-text search with autocomplete
+- **RBAC** - Role-based access control
+- **Dark/Light Mode** - Theme customization
 
 ## Tech Stack
 
@@ -34,11 +36,13 @@ TaskFlow is a feature-rich project management platform designed for teams to col
 - React Router for navigation
 
 **Backend:**
-- Node.js with Express
+- Node.js 18 with Express
 - MongoDB with Mongoose
 - JWT authentication
 - Socket.io for WebSocket connections
 - Nodemailer for email services
+- Bull & Redis for job queues
+- Multer for file uploads
 
 ## Quick Start
 
@@ -188,4 +192,4 @@ This project is licensed under the MIT License.
 
 ## Support
 
-For support, email [contact-email] or create an issue on GitHub.
+For issues or questions, please create an issue on GitHub.
